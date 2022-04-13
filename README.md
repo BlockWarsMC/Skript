@@ -1,4 +1,13 @@
-# Skript [![Build Status](https://travis-ci.org/SkriptLang/Skript.svg?branch=master)](https://travis-ci.org/SkriptLang/Skript)
+# Skript
+
+### This is a fork of [Skript](https://github.com/SkriptLang/Skript/), for the Blockwars Minecraft Event!
+- This fork contains changes created by the [Blockwars Team](https://github.com/BlockWarsMC), [SkriptLang](SkriptLang) and [TPGamesNL](https://github.com/TPGamesNL)
+- Changes Made:
+  - [Fix Functions in Async Loading](https://github.com/SkriptLang/Skript/pull/4252)
+  - Remove Warnings (they were annoying Aso)
+  - Update `EffScriptFile` to an EffectSection
+#### This fork contains changes specifically for the BlockWars codebase
+
 Skript is a plugin for Paper/Spigot, which allows server owners and other people
 to modify their servers without learning Java. It can also be useful if you
 *do* know Java; some tasks are quicker to do with Skript, and so it can be used
@@ -19,20 +28,10 @@ Testing with all old patch versions is not feasible for us.
 Minecraft 1.8 and earlier are not, and will not be supported. New Minecraft
 versions will be supported as soon as possible.
 
-## Download
-You can find the downloads for each version with their release notes in the [releases page](https://github.com/SkriptLang/Skript/releases).
 
 ## Documentation
 Documentation is available [here](https://skriptlang.github.io/Skript) for the
 latest version of Skript.
-
-## Reporting Issues
-Please see our [contribution guidelines](https://github.com/SkriptLang/Skript/blob/master/.github/contributing.md)
-before reporting issues.
-
-## A Note About Add-ons
-We don't support add-ons here, even though some of Skript developers have also
-developed their own add-ons.
 
 ## Compiling
 Skript uses Gradle for compilation. Use your command prompt of preference and
@@ -101,66 +100,6 @@ compiling your own test builds as releases.
 Please review our [contribution guidelines](https://github.com/SkriptLang/Skript/blob/master/.github/contributing.md).
 In addition to that, if you are contributing Java code, check our
 [coding conventions](https://github.com/SkriptLang/Skript/blob/master/code-conventions.md).
-
-## Maven Repository
-If you use Skript as (soft) dependency for your plugin, and use maven or Gradle,
-this is for you.
-
-First, you need to add the Maven repository at the **END** of all your repositories. Skript is not available in Maven Central.
-```gradle
-repositories {
-    maven {
-        url 'https://repo.skriptlang.org/releases'
-    }
-}
-```
-
-Or, if you use Maven:
-```maven
-<repositories>
-    <repository>
-        <id>skript-releases</id>
-        <name>Skript Repository</name>
-        <url>https://repo.skriptlang.org/releases</url>
-    </repository>
-</repositories>
-```
-
-For versions of Skript after dev37 you might need to add the paper-api repository to prevent build issues.
-
-```gradle
-maven {
-    url 'https://repo.destroystokyo.com/repository/maven-public/'
-}
-```
-
-Or, if you use Maven:
-```maven
-<repository>
-    <id>destroystokyo-repo</id>
-    <url>https://repo.destroystokyo.com/content/repositories/snapshots/</url>
-</repository>
-```
-
-Then you will also need to add Skript as a dependency.
-```gradle
-dependencies {
-    implementation 'com.github.SkriptLang:Skript:[versionTag]'
-}
-```
-
-An example of the version tag would be ```dev37c```.
-
-> Note: If Gradle isn't able to resolve Skript's dependencies, just [disable the resolution of transitive dependencies](https://docs.gradle.org/current/userguide/resolution_rules.html#sec:disabling_resolution_transitive_dependencies) for Skript in your project.
-
-Or, if you use Maven:
-```
-<dependency>
-    <groupId>com.github.SkriptLang</groupId>
-    <artifactId>Skript</artifactId>
-    <version>[versionTag]</version>
-</dependency>
-```
 
 ## Relevant Links
 * [skUnity forums](https://forums.skunity.com)
