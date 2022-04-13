@@ -292,7 +292,7 @@ public class VariableString implements Expression<String> {
 				((Expression<?>) string.get(0)).isSingle() &&
 				mode == StringMode.MESSAGE) {
 			String expr = ((Expression<?>) string.get(0)).toString(null, false);
-			Skript.warning(expr + " is already a text, so you should not put it in one (e.g. " + expr + " instead of " + "\"%" + expr.replace("\"", "\"\"") + "%\")");
+			//Skript.warning(expr + " is already a text, so you should not put it in one (e.g. " + expr + " instead of " + "\"%" + expr.replace("\"", "\"\"") + "%\")");
 		}
 		return new VariableString(orig, sa, mode);
 	}
