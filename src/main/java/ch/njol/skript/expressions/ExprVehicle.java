@@ -47,7 +47,7 @@ public class ExprVehicle extends SimpleExpression<Vehicle> {
 	
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parser) {
-		System.out.println(getParser().getCurrentEvents()[0].toString());
+		//System.out.println(getParser().getCurrentEvents()[0].toString());
 		if (!VehicleEvent.class.isAssignableFrom(getParser().getCurrentEvents()[0])) {
 			Skript.error("Cannot use 'vehicle' outside of a vehicle related events.");
 			return false;

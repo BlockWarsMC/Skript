@@ -78,15 +78,9 @@ public class ExprPassenger extends SimpleExpression<Entity> { // REMIND create '
 			@Override
 			@Nullable
 			public Entity[] convert(Entity v) {
-				if (getTime() >= 0 && e instanceof VehicleEnterEvent && v.equals(((VehicleEnterEvent) e).getVehicle()) && !Delay.isDelayed(e)) {
-					return new Entity[] {((VehicleEnterEvent) e).getEntered()};
-				}
-				if (getTime() >= 0 && e instanceof VehicleExitEvent && v.equals(((VehicleExitEvent) e).getVehicle()) && !Delay.isDelayed(e)) {
-					return new Entity[] {((VehicleExitEvent) e).getExited()};
-				}
 				return PassengerUtils.getPassenger(v);
 			}};
-			
+
 		List<Entity> entities = new ArrayList<>();
 		for (Entity v : source) {
 			if (v == null)

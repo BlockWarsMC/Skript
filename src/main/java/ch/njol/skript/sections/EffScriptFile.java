@@ -134,7 +134,7 @@ public class EffScriptFile extends EffectSection {
 
 		OpenCloseable logHandler = OpenCloseable.EMPTY;
 		if (e instanceof CommandEvent) {
-			logHandler = new RedirectingLogHandler(((CommandEvent) e).getSender(), "");
+			logHandler = new RedirectingLogHandler(((CommandEvent) e).getSender(), "").start();
 		}
 
 		switch (mark) {
