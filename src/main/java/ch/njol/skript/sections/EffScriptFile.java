@@ -237,7 +237,6 @@ public class EffScriptFile extends EffectSection {
 				assert false;
 				break;
 		}
-		logHandler.close();
 		return super.walk(e, false);
 	}
 
