@@ -58,6 +58,7 @@ import ch.njol.skript.registrations.Converters;
 import ch.njol.skript.sections.SecLoop;
 import ch.njol.skript.util.Date;
 import ch.njol.skript.util.ExceptionUtils;
+import ch.njol.skript.util.SkriptColor;
 import ch.njol.skript.util.Task;
 import ch.njol.skript.variables.TypeHints;
 import ch.njol.skript.variables.Variables;
@@ -725,7 +726,7 @@ public class ScriptLoader {
 						continue;
 					
 					if (Skript.debug() || node.debug())
-						Skript.debug(event + " (" + parsedEvent.getSecond().toString(null, true) + "):");
+						Skript.debug(SkriptColor.replaceColorChar(event + " (" + parsedEvent.getSecond().toString(null, true) + "):"));
 
 					Class<? extends Event>[] eventClasses = parsedEvent.getSecond().getEventClasses();
 					if (eventClasses == null)
@@ -1088,7 +1089,7 @@ public class ScriptLoader {
 					continue;
 
 				if (Skript.debug() || n.debug())
-					Skript.debug(getParser().getIndentation() + stmt.toString(null, true));
+					Skript.debug(SkriptColor.replaceColorChar(getParser().getIndentation() + stmt.toString(null, true)));
 
 				items.add(stmt);
 			} else if (n instanceof SectionNode) {
@@ -1102,7 +1103,7 @@ public class ScriptLoader {
 					continue;
 
 				if (Skript.debug() || n.debug())
-					Skript.debug(getParser().getIndentation() + section.toString(null, true));
+					Skript.debug(SkriptColor.replaceColorChar(getParser().getIndentation() + section.toString(null, true)));
 
 				items.add(section);
 
