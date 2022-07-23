@@ -281,7 +281,7 @@ task nightlyResources(type: ProcessResources) {
 	from 'src/main/resources', {
 		include '**'
 		def hash = 'git rev-parse --short HEAD'.execute().text.trim()
-		version = project.property('version') + '-nightly-' + hash
+		version = project.property('version') + '-blockwars-' + hash
 		filter ReplaceTokens, tokens: [
 			'version'         : version,
 			'today'           : '' + LocalTime.now(),
@@ -298,7 +298,7 @@ task nightlyResources(type: ProcessResources) {
 task nightlyRelease(type: ShadowJar) {
 	from sourceSets.main.output
 	dependsOn nightlyResources, licenseMain
-	archiveName = 'Skript-nightly.jar'
+	archiveName = 'Skript-blockwars.jar'
 	manifest {
 		attributes(
 			'Name': 'ch/njol/skript',
