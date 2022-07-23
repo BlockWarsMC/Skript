@@ -60,6 +60,7 @@ import ch.njol.skript.util.Date;
 import ch.njol.skript.util.ExceptionUtils;
 import ch.njol.skript.util.SkriptColor;
 import ch.njol.skript.util.Task;
+import ch.njol.skript.util.Timespan;
 import ch.njol.skript.variables.TypeHints;
 import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
@@ -571,7 +572,7 @@ public class ScriptLoader {
 		if (config == null) { // Something bad happened, hopefully got logged to console
 			return new ScriptInfo();
 		}
-		
+
 		// When something is parsed, it goes there to be loaded later
 		List<ScriptCommand> commands = new ArrayList<>();
 		List<ParsedEventData> events = new ArrayList<>();
@@ -685,7 +686,7 @@ public class ScriptLoader {
 					if (!SkriptParser.validateLine(event))
 						continue;
 					
-					if (event.toLowerCase().startsWith("command ")) {
+					if (event.toLowerCase(Locale.ENGLISH).startsWith("command ")) {
 						
 						getParser().setCurrentEvent("command", CommandEvent.class);
 						
@@ -699,7 +700,7 @@ public class ScriptLoader {
 						getParser().deleteCurrentEvent();
 						
 						continue;
-					} else if (event.toLowerCase().startsWith("function ")) {
+					} else if (event.toLowerCase(Locale.ENGLISH).startsWith("function ")) {
 						
 						getParser().setCurrentEvent("function", FunctionEvent.class);
 						
@@ -856,17 +857,20 @@ public class ScriptLoader {
 		File[] files = directory.listFiles(scriptFilter);
 		Arrays.sort(files);
 		
+		List<Config> loadedDirectories = new ArrayList<>(files.length);
 		List<Config> loadedFiles = new ArrayList<>(files.length);
 		for (File file : files) {
 			if (file.isDirectory()) {
-				loadedFiles.addAll(loadStructures(file));
+				loadedDirectories.addAll(loadStructures(file));
 			} else {
 				Config cfg = loadStructure(file);
 				if (cfg != null)
 					loadedFiles.add(cfg);
 			}
 		}
-		return loadedFiles;
+
+		loadedDirectories.addAll(loadedFiles);
+		return loadedDirectories;
 	}
 	
 	/**
@@ -941,7 +945,7 @@ public class ScriptLoader {
 				if (!SkriptParser.validateLine(event))
 					continue;
 				
-				if (event.toLowerCase().startsWith("function ")) {
+				if (event.toLowerCase(Locale.ENGLISH).startsWith("function ")) {
 					
 					getParser().setCurrentEvent("function", FunctionEvent.class);
 					
@@ -1084,9 +1088,19 @@ public class ScriptLoader {
 				if (!SkriptParser.validateLine(expr))
 					continue;
 
+				long start = System.currentTimeMillis();
 				Statement stmt = Statement.parse(expr, "Can't understand this condition/effect: " + expr);
 				if (stmt == null)
 					continue;
+				long requiredTime = SkriptConfig.longParseTimeWarningThreshold.value().getMilliSeconds();
+				if (requiredTime > 0) {
+					long timeTaken = System.currentTimeMillis() - start;
+					if (timeTaken > requiredTime)
+						Skript.warning(
+							"The current line took a long time to parse (" + new Timespan(timeTaken) + ")."
+								+ " Avoid using long lines and use parentheses to create clearer instructions."
+						);
+				}
 
 				if (Skript.debug() || n.debug())
 					Skript.debug(SkriptColor.replaceColorChar(getParser().getIndentation() + stmt.toString(null, true)));
@@ -1136,7 +1150,7 @@ public class ScriptLoader {
 			assert false : node;
 			return null;
 		}
-		if (event.toLowerCase().startsWith("on "))
+		if (event.toLowerCase(Locale.ENGLISH).startsWith("on "))
 			event = "" + event.substring("on ".length());
 		
 		NonNullPair<SkriptEventInfo<?>, SkriptEvent> parsedEvent =
