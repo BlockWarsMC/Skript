@@ -43,7 +43,7 @@ import java.util.List;
 public class SecRunThread extends Section {
 
 	static {
-		Skript.registerSection(SecRunThread.class, "run [on] (1¦async|2¦main) [thread]");
+		Skript.registerSection(SecRunThread.class, "run [on] (1¦async|2¦main) [thread] [named %-string%]");
 	}
 
 	public static class RunThread extends Event {
@@ -58,10 +58,15 @@ public class SecRunThread extends Section {
 	private int mark;
 	@Nullable
 	private Trigger trigger;
+	@Nullable
+	private Expression<String> threadName;
 
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult, SectionNode sectionNode, List<TriggerItem> triggerItems) {
 		mark = parseResult.mark;
+		if (exprs.length > 0) {
+			threadName = (Expression<String>) exprs[0];
+		}
 
 		if (sectionNode != null)
 			trigger = loadCode(sectionNode, "run");
@@ -79,6 +84,11 @@ public class SecRunThread extends Section {
 		BukkitRunnable runnable = new BukkitRunnable(){
 			@Override
 			public void run() {
+				if (!Thread.currentThread().getName().equalsIgnoreCase("Server thread")) {
+					if (threadName != null) {
+						Thread.currentThread().setName(threadName.getSingle(e));
+					}
+				}
 				trigger.execute(ev);
 			}
 		};

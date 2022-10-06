@@ -105,28 +105,8 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
-import org.bukkit.event.player.PlayerBedEnterEvent;
-import org.bukkit.event.player.PlayerBedLeaveEvent;
-import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerBucketFillEvent;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerEditBookEvent;
-import org.bukkit.event.player.PlayerEggThrowEvent;
-import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemBreakEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
-import org.bukkit.event.player.PlayerItemMendEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
-import org.bukkit.event.player.PlayerRiptideEvent;
-import org.bukkit.event.player.PlayerShearEntityEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
-import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.event.vehicle.*;
 import org.bukkit.event.weather.LightningStrikeEvent;
@@ -1383,5 +1363,19 @@ public final class BukkitEventValues {
 				return event.getEgg();
 			}
 		}, EventValues.TIME_NOW);
+
+		EventValues.registerEventValue(PlayerStatisticIncrementEvent.class, String.class, new Getter<String, PlayerStatisticIncrementEvent>() {
+			@Override
+			public String get(PlayerStatisticIncrementEvent e) {
+				return e.getStatistic().name().toLowerCase();
+			}
+		}, 0);
+
+		EventValues.registerEventValue(PlayerStatisticIncrementEvent.class, String.class, new Getter<String, PlayerStatisticIncrementEvent>() {
+			@Override
+			public String get(PlayerStatisticIncrementEvent e) {
+				return e.getStatistic().name().toLowerCase();
+			}
+		}, 0);
 	}
 }

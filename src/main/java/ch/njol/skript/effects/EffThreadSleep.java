@@ -42,18 +42,15 @@ import ch.njol.skript.util.Timespan;
 import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
 
-/**
- * @author Peter Güttinger
- */
-@Name("Delay")
-@Description("Delays the script's execution by a given timespan. Please note that delays are not persistent, e.g. trying to create a tempban script with <code>ban player → wait 7 days → unban player</code> will not work if you restart your server anytime within these 7 days. You also have to be careful even when using small delays!")
+@Name("Thread Sleep")
+@Description("")
 @Examples({"wait 2 minutes",
-		"halt for 5 minecraft hours",
-		"wait a tick"})
+	"halt for 5 minecraft hours",
+	"wait a tick"})
 @Since("1.4")
-public class Delay extends Effect {
+public class EffThreadSleep extends Effect {
 	static {
-		Skript.registerEffect(Delay.class, "(wait|halt) [for] %timespan%");
+		Skript.registerEffect(EffThreadSleep.class, "[thread] sleep [goodnight] %timespan%");
 	}
 
 	@SuppressWarnings("null")
@@ -77,60 +74,18 @@ public class Delay extends Effect {
 	@Nullable
 	protected TriggerItem walk(final Event e) {
 		debug(e, true);
-		final long start = Skript.debug() ? System.nanoTime() : 0;
 		final TriggerItem next = getNext();
 		if (next != null && Skript.getInstance().isEnabled()) { // See https://github.com/SkriptLang/Skript/issues/3702
-			delayed.add(e);
 			final Timespan d = duration.getSingle(e);
 			if (d == null)
 				return null;
-			
-			// Back up local variables
-			Object localVars = Variables.removeLocals(e);
 
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					if (Skript.debug())
-						Skript.info(getIndentation() + "... continuing after " + (System.nanoTime() - start) / 1000000000. + "s");
-
-					// Re-set local variables
-					if (localVars != null)
-						Variables.setLocalVariables(e, localVars);
-
-					Object timing = null;
-					if (SkriptTimings.enabled()) { // getTrigger call is not free, do it only if we must
-						Trigger trigger = getTrigger();
-						if (trigger != null) {
-							timing = SkriptTimings.start(trigger.getDebugLabel());
-						}
-					}
-
-					TriggerItem.walk(next, e);
-					Variables.removeLocals(e); // Clean up local vars, we may be exiting now
-
-					SkriptTimings.stop(timing); // Stop timing if it was even started
-				}
-			};
-			Long delay = d.getTicks_i() < 1 ? 1 : d.getTicks_i();
-			if (!Thread.currentThread().getName().equalsIgnoreCase("Server thread")) {
-				Bukkit.getScheduler().runTaskLaterAsynchronously(Skript.getInstance(), runnable, delay);
-				return null;
-			}
-			Bukkit.getScheduler().scheduleSyncDelayedTask(Skript.getInstance(), runnable, delay); // Minimum delay is one tick, less than it is useless!
+			try {
+				Thread.sleep(d.getMilliSeconds());
+				TriggerItem.walk(next, e);
+			} catch (InterruptedException ignored) {}
 		}
 		return null;
-	}
-
-	@SuppressWarnings("null")
-	protected final static Set<Event> delayed = Collections.newSetFromMap(new WeakHashMap<Event, Boolean>());
-
-	public static boolean isDelayed(final Event e) {
-		return delayed.contains(e);
-	}
-
-	public static void addDelayedEvent(Event event){
-		delayed.add(event);
 	}
 
 	@Override
@@ -140,7 +95,7 @@ public class Delay extends Effect {
 
 	@Override
 	public String toString(final @Nullable Event e, final boolean debug) {
-		return "wait for " + duration.toString(e, debug) + (e == null ? "" : "...");
+		return "thread sleep" + duration.toString(e, debug) + (e == null ? "" : "...");
 	}
 
 }
