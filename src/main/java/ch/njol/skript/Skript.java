@@ -52,6 +52,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
@@ -64,8 +65,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerPreLoginEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.plugin.Plugin;
@@ -181,6 +184,7 @@ public final class Skript extends JavaPlugin implements Listener {
 	
 	private static boolean disabled = false;
 	private static boolean partDisabled = false;
+	public static boolean skriptsLoaded = false;
 	
 	public static Skript getInstance() {
 		final Skript i = instance;
@@ -731,6 +735,7 @@ public final class Skript extends JavaPlugin implements Listener {
 				 */
 				ScriptLoader.loadScripts(OpenCloseable.EMPTY)
 					.thenAccept(unused -> {
+						skriptsLoaded = true;
 						Skript.info(m_finished_loading.toString());
 						
 						// EvtSkript.onSkriptStart should be called on main server thread
@@ -782,6 +787,15 @@ public final class Skript extends JavaPlugin implements Listener {
 							}
 						}
 					};
+				}
+			}
+		}, this);
+
+		Bukkit.getPluginManager().registerEvents(new Listener() {
+			@EventHandler
+			public void onJoin(final AsyncPlayerPreLoginEvent e) {
+				if (!skriptsLoaded) {
+					e.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, Component.text("The server is still loading!"));
 				}
 			}
 		}, this);
