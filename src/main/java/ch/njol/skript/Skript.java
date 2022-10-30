@@ -52,6 +52,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import ch.njol.skript.effects.fawe.EffReplaceBlocks;
 import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
@@ -519,7 +520,7 @@ public final class Skript extends JavaPlugin implements Listener {
 		
 		if (logNormal())
 			info(" " + Language.get("skript.copyright"));
-		
+
 		final long tick = testing() ? Bukkit.getWorlds().get(0).getFullTime() : 0;
 		Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
 			@SuppressWarnings("synthetic-access")

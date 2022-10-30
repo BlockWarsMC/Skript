@@ -32,6 +32,9 @@ dependencies {
 		exclude group: 'org.bstats', module: 'bstats-bukkit'
 	}
 	implementation fileTree(dir: 'lib', include: '*.jar')
+
+	compileOnly('com.fastasyncworldedit:FastAsyncWorldEdit-Core:2.4.8')
+	compileOnly('com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.4.8')
 }
 
 compileJava.options.encoding = 'UTF-8'
