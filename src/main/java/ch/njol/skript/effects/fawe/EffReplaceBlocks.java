@@ -82,6 +82,8 @@ public class EffReplaceBlocks extends Effect {
 	protected void execute(Event e) {
 		Location pos1 = this.pos1Location.getSingle(e);
 		Location pos2 = this.pos2Location.getSingle(e);
+		String mask0 = this.maskText.getSingle(e);
+		String pattern0 = this.patternText.getSingle(e);
 
 		new BukkitRunnable(){
 			@Override
@@ -94,8 +96,8 @@ public class EffReplaceBlocks extends Effect {
 				context.setActor(BukkitAdapter.adapt(Bukkit.getConsoleSender()));
 				context.setExtent(session);
 
-				Mask mask = new MaskFactory(WorldEdit.getInstance()).parseFromInput(maskText.getSingle(e), context);
-				Pattern pattern = new PatternFactory(WorldEdit.getInstance()).parseFromInput(patternText.getSingle(e), context);
+				Mask mask = new MaskFactory(WorldEdit.getInstance()).parseFromInput(mask0, context);
+				Pattern pattern = new PatternFactory(WorldEdit.getInstance()).parseFromInput(pattern0, context);
 
 				new MaskTraverser(mask).setNewExtent(session);
 
