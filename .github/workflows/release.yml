@@ -16,11 +16,11 @@ jobs:
             - name: Validate Gradle wrapper
               uses: gradle/wrapper-validation-action@v2
             - name: Build with Gradle
-              uses: gradle/gradle-build-action@latest
+              uses: gradle/gradle-build-action@v2
               with:
                   arguments: nightlyRelease
             - name: GitHub Release
-              uses: marvinpinto/action-automatic-releases@v2
+              uses: marvinpinto/action-automatic-releases@latest
               with:
                   repo_token: '${{ secrets.GITHUB_TOKEN }}'
                   prerelease: false
