@@ -24,5 +24,5 @@ jobs:
               with:
                   repo_token: '${{ secrets.GITHUB_TOKEN }}'
                   prerelease: false
-                  automatic_release_tag: 'bw.${{ github.run_number }'
+                  automatic_release_tag: 'bw.${{ github.run_number }}'
                   files: build/libs/*.jar
