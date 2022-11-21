@@ -18,6 +18,16 @@
  */
 package ch.njol.skript.effects;
 
+import ch.njol.skript.util.chat.BungeeConverter;
+import ch.njol.skript.util.chat.ChatMessages;
+import ch.njol.skript.util.chat.MessageComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.ComponentSerializer;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.kyori.adventure.title.Title;
+import net.kyori.adventure.title.TitlePart;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
@@ -32,6 +42,10 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.util.Timespan;
 import ch.njol.util.Kleenean;
+import org.jetbrains.annotations.NotNull;
+
+import java.time.Duration;
+import java.util.List;
 
 @Name("Title - Send")
 @Description({
@@ -92,33 +106,46 @@ public class EffSendTitle extends Effect {
 	@SuppressWarnings("null")
 	@Override
 	protected void execute(final Event e) {
-		String title = this.title != null ? this.title.getSingle(e) : null;
-		String subtitle = this.subtitle != null ? this.subtitle.getSingle(e) : null;
-		
+		String titleText = this.title != null ? this.title.getSingle(e) : null;
+		Component title = this.title != null ?
+			BungeeComponentSerializer.get().deserialize(BungeeConverter.convert(ChatMessages.parse(titleText))) : null;
+
+		String subtitleText = this.subtitle != null ? this.subtitle.getSingle(e) : null;
+		Component subtitle = this.subtitle != null ?
+			BungeeComponentSerializer.get().deserialize(BungeeConverter.convert(ChatMessages.parse(subtitleText))) : null;
+
 		if (TIME_SUPPORTED) {
-			int fadeIn, stay, fadeOut;
+			long fadeIn, stay, fadeOut;
 			fadeIn = stay = fadeOut = -1;
 
 			if (this.fadeIn != null) {
 				Timespan t = this.fadeIn.getSingle(e);
-				fadeIn = t != null ? (int) t.getTicks_i() : -1;
+				fadeIn = t != null ? t.getMilliSeconds() : -1;
 			}
 
 			if (this.stay != null) {
 				Timespan t = this.stay.getSingle(e);
-				stay = t != null ? (int) t.getTicks_i() : -1;
+				stay = t != null ? t.getMilliSeconds() : -1;
 			}
 
 			if (this.fadeOut != null) {
 				Timespan t = this.fadeOut.getSingle(e);
-				fadeOut = t != null ? (int) t.getTicks_i() : -1;
+				fadeOut = t != null ? t.getMilliSeconds() : -1;
 			}
-			
-			for (Player p : recipients.getArray(e))
-				p.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
-		} else {
-			for (Player p : recipients.getArray(e))
-				p.sendTitle(title, subtitle);
+
+			for (Player p : recipients.getArray(e)) {
+				p.sendTitlePart(TitlePart.TIMES, Title.Times.times(
+					Duration.ofMillis(fadeIn),
+					Duration.ofMillis(stay),
+					Duration.ofMillis(fadeOut)
+				));
+			}
+		}
+		for (Player p : recipients.getArray(e)) {
+			if (title != null)
+				p.sendTitlePart(TitlePart.TITLE, title);
+			if (subtitle != null)
+				p.sendTitlePart(TitlePart.SUBTITLE, subtitle);
 		}
 	}
 	

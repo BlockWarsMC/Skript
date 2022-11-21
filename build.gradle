@@ -5,10 +5,10 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import java.time.LocalTime
 
 plugins {
-	id 'com.github.johnrengelman.shadow' version '7.1.2'
 	id 'com.github.hierynomus.license' version '0.16.1'
 	id 'maven-publish'
 	id 'java'
+	id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 allprojects {
@@ -22,6 +22,9 @@ allprojects {
 }
 
 dependencies {
+	shadow "net.kyori:adventure-platform-bukkit:4.1.2"
+	shadow "net.kyori:adventure-text-serializer-bungeecord:4.1.2"
+
 	shadow group: 'io.papermc', name: 'paperlib', version: '1.0.7'
 	shadow group: 'org.bstats', name: 'bstats-bukkit', version: '3.0.0'
 	implementation group: 'io.papermc.paper', name: 'paper-api', version: '1.19.2-R0.1-SNAPSHOT'
@@ -77,6 +80,10 @@ tasks.withType(ShadowJar) {
 	]
 	dependencies {
 		include(dependency('io.papermc:paperlib'))
+
+		include(dependency('net.kyori:adventure-platform-bukkit'))
+		include(dependency('net.kyori:adventure-text-serializer-bungeecord'))
+
 		include(dependency('org.bstats:bstats-bukkit'))
 		include(dependency('org.bstats:bstats-base'))
 	}
