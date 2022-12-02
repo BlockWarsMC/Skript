@@ -8,6 +8,9 @@
   - Remove Warnings (they were annoying Aso)
   - Update `EffScriptFile` to an EffectSection
   - Update `SimpleEvents` to add PlayerInteractEvent
+  - Adds `EffReplaceBlocks` for integration with FAWE
+  - Adds `EffRemoveEntity` to remove an entity instead of killing it
+  - Adds the ability to add fonts and other stylings into titles
 #### This fork contains changes specifically for the BlockWars codebase
 
 Skript is a plugin for Paper/Spigot, which allows server owners and other people
