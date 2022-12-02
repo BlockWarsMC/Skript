@@ -21,6 +21,10 @@ package ch.njol.skript.expressions;
 import ch.njol.skript.Skript;
 import ch.njol.skript.classes.Changer;
 import ch.njol.skript.classes.ClassInfo;
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Examples;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.Since;
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
@@ -35,6 +39,10 @@ import org.eclipse.jdt.annotation.Nullable;
 
 import java.lang.reflect.Field;
 
+@Name("Spigot Async Catcher")
+@Description("The current status of the Spigot Async Cathcer")
+@Examples("set async catcher to false")
+@Since("02/12/2022")
 public class ExprAsyncCatcher extends SimpleExpression<Boolean> {
 
 	@org.jetbrains.annotations.Nullable private static Field asyncCatcher;

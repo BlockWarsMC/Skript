@@ -40,6 +40,7 @@ import ch.njol.util.Kleenean;
  */
 @Name("Can Be Enchanted with")
 @Description("Checks if an item can be enchanted with an enchantment")
+@Examples("player's held item can be enchanted with mending")
 @Since("01/11/2022")
 public class CondCanEnchant extends Condition {
 	static {

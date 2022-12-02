@@ -46,8 +46,9 @@ import org.eclipse.jdt.annotation.Nullable;
 import java.lang.reflect.Array;
 import java.util.*;
 
-@Name("Entities In Box")
-@Description("")
+@Name("Entities Between Locations")
+@Description("Gets the entities that are between 2 locations")
+@Examples("kill entities within {_myHouse.1} and {_myHouse.2}")
 @Since("02/11/2022")
 public class ExprEntitiesBetweenLocations extends SimpleExpression<Entity> {
 

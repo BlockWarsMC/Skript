@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.eclipse.jdt.annotation.Nullable;
 
 import com.google.common.base.Joiner;
@@ -383,6 +384,7 @@ public class HTMLGenerator {
 		Class<?> c = info.c;
 		String desc = "";
 
+		Bukkit.getLogger().info("Generating Docs for: " + c.getName());
 		Name name = c.getAnnotation(Name.class);
 		desc = descTemp.replace("${element.name}", getNullOrEmptyDefault(name.value(), "Unknown Name"));
 
