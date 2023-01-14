@@ -24,7 +24,6 @@ import ch.njol.skript.config.Option;
 import ch.njol.skript.config.OptionSection;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.hooks.Hook;
-import ch.njol.skript.hooks.VaultHook;
 import ch.njol.skript.hooks.regions.GriefPreventionHook;
 import ch.njol.skript.hooks.regions.PreciousStonesHook;
 import ch.njol.skript.hooks.regions.ResidenceHook;
@@ -274,12 +273,6 @@ public class SkriptConfig {
 	public static final Option<Boolean> executeFunctionsWithMissingParams = new Option<>("execute functions with missing parameters", true)
 			.optional(true)
 			.setter(t -> Function.executeWithNulls = t);
-
-	public final static Option<Boolean> disableHookVault = new Option<>("disable hooks.vault", false)
-		.optional(true)
-		.setter(value -> {
-			userDisableHooks(VaultHook.class, value);
-		});
 	public final static Option<Boolean> disableHookGriefPrevention = new Option<>("disable hooks.regions.grief prevention", false)
 		.optional(true)
 		.setter(value -> {

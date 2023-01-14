@@ -445,7 +445,7 @@ public class FlatFileStorage extends VariablesStorage {
 						}
 					}
 				} catch (Exception ex) {
-					Skript.exception(ex, "Error saving variable named " + name);
+					Skript.error("Error saving variable named " + name + ". Error: '" + ex.getMessage() + "'");
 				}
 			}
 		}

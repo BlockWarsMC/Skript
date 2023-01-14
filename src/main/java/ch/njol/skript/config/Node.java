@@ -168,7 +168,7 @@ public abstract class Node {
 	}
 	
 	@Nullable
-	protected String getComment() {
+	public String getComment() {
 		return comment;
 	}
 	

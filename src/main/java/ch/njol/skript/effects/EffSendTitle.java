@@ -107,6 +107,7 @@ public class EffSendTitle extends Effect {
 	@Override
 	protected void execute(final Event e) {
 		String titleText = this.title != null ? this.title.getSingle(e) : null;
+
 		Component title = this.title != null ?
 			BungeeComponentSerializer.get().deserialize(BungeeConverter.convert(ChatMessages.parse(titleText))) : null;
 

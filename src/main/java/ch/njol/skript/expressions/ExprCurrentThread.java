@@ -39,10 +39,9 @@ import java.util.UUID;
 /**
  * @author Peter Güttinger
  */
-@Name("Player From UUID")
-@Description("A player from their UUID")
-@Examples({"player's gamemode is survival",
-		"set the player's gamemode to creative"})
+@Name("Current Thread")
+@Description("Get the current thread")
+@Examples({"broadcast current thread"})
 @Since("i got here")
 public class ExprCurrentThread extends SimpleExpression<String> {
 	

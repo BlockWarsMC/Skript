@@ -44,7 +44,7 @@ import ch.njol.util.coll.iterator.CheckedIterator;
  */
 public class SectionNode extends Node implements Iterable<Node> {
 	
-	private final ArrayList<Node> nodes = new ArrayList<>();
+	public final ArrayList<Node> nodes = new ArrayList<>();
 	
 	public SectionNode(final String key, final String comment, final SectionNode parent, final int lineNum) {
 		super(key, comment, parent, lineNum);

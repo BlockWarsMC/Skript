@@ -588,8 +588,11 @@ public class SimpleEvents {
 			.description("Called when a player interacts with the surroundings")
 			.requiredPlugins("Minecraft 1.13 or newer")
 			.since("3.0.0");
-		Skript.registerEvent("Stat", SimpleEvent.class, PlayerStatisticIncrementEvent.class, "[player] stat[istic][s] (change|increase)")
+		Skript.registerEvent("Statistic Change", SimpleEvent.class, PlayerStatisticIncrementEvent.class, "[player] stat[istic][s] (change|increase)")
 			.description("Called when a player's stats changes")
+			.examples("on stat change:",
+				"\tevent-string is \"jump\"",
+				"\tbroadcast \"%player% jumped!\"")
 			.since("6th October 2022 7:08 PM");
 		Skript.registerEvent("Anvil Prepare", SimpleEvent.class, PrepareAnvilEvent.class, "anvil prepar(e|ing)")
 			.description("Called when an item is put in a slot for repair by an anvil. Please note that this event is called multiple times in a single item slot move.")
