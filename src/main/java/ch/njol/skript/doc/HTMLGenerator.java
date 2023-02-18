@@ -24,15 +24,19 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import ch.njol.skript.doc.skunity.Element;
+import ch.njol.skript.doc.skunity.Example;
+import ch.njol.skript.doc.skunity.SkUnityElements;
+import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.PluginClassLoader;
 import org.eclipse.jdt.annotation.Nullable;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import ch.njol.skript.Skript;
-import ch.njol.skript.SkriptAPIException;
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Effect;
@@ -43,6 +47,7 @@ import ch.njol.skript.lang.function.Functions;
 import ch.njol.skript.lang.function.JavaFunction;
 import ch.njol.skript.lang.function.Parameter;
 import ch.njol.skript.registrations.Classes;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Template engine, primarily used for generating Skript documentation
@@ -53,14 +58,19 @@ public class HTMLGenerator {
 	
 	private File template;
 	private File output;
-	
 	private String skeleton;
+
+	private List<Element> elements;
+	private Gson gson = new Gson();
 	
 	public HTMLGenerator(File templateDir, File outputDir) {
 		this.template = templateDir;
 		this.output = outputDir;
 		
 		this.skeleton = readFile(new File(template + "/template.html")); // Skeleton which contains every other page
+
+		String addons = readFile(new File(template + "/assets/skriptHubAddons.json"));
+		elements = gson.fromJson(addons, SkUnityElements.class).getResult().getElements();
 	}
 	
 	@SuppressWarnings("null")
@@ -100,9 +110,9 @@ public class HTMLGenerator {
 			Name name1 = o1.c.getAnnotation(Name.class);
 			Name name2 = o2.c.getAnnotation(Name.class);
 			if (name1 == null)
-				throw new SkriptAPIException("Name annotation expected: " + o1.c);
+				return 1;
 			if (name2 == null)
-				throw new SkriptAPIException("Name annotation expected: " + o2.c);
+				return -1;
 			
 			return name1.value().compareTo(name2.value());
 		}
@@ -383,33 +393,58 @@ public class HTMLGenerator {
 	private String generateAnnotated(String descTemp, SyntaxElementInfo<?> info, @Nullable String page) {
 		Class<?> c = info.c;
 		String desc = "";
+		Element currentElement = null;
 
 		Bukkit.getLogger().info("Generating Docs for: " + c.getName());
 		Name name = c.getAnnotation(Name.class);
-		desc = descTemp.replace("${element.name}", getNullOrEmptyDefault(name.value(), "Unknown Name"));
+		if (name == null) return "";
+		desc = descTemp.replace("${element.name}", getNullOrEmptyDefault(name.value(), c.getSimpleName()));
 
-		Since since = c.getAnnotation(Since.class);
-		desc = desc.replace("${element.since}", getNullOrEmptyDefault(since.value(), "Unknown"));
+		String plugin;
+		if (c.getClassLoader() instanceof PluginClassLoader) {
+			plugin = ((PluginClassLoader) c.getClassLoader()).getPlugin().getName();
+		} else {
+			plugin = null;
+		}
+		desc = desc.replace("${element.from}", getNullOrEmptyDefault(plugin, "Unknown Addon"));
 
 		Description description = c.getAnnotation(Description.class);
-		desc = desc.replace("${element.desc}", Joiner.on("\n").join(getNullOrEmptyDefault(description.value(), "Unknown description.")).replace("\n\n", "<p>"));
-		desc = desc.replace("${element.desc-safe}", Joiner.on("\n").join(getNullOrEmptyDefault(description.value(), "Unknown description."))
+		if (description != null) {
+			desc = desc.replace("${element.desc}", Joiner.on("\n").join(getNullOrEmptyDefault(description.value(), "Unknown description.")).replace("\n\n", "<p>"));
+			desc = desc.replace("${element.desc-safe}", Joiner.on("\n").join(getNullOrEmptyDefault(description.value(), "Unknown description."))
 				.replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "    "));
-
-		Examples examples = c.getAnnotation(Examples.class);
-		desc = desc.replace("${element.examples}", Joiner.on("<br>").join(getNullOrEmptyDefault(examples.value(), "Missing examples.")));
-		desc = desc.replace("${element.examples-safe}", Joiner.on("\\n").join(getNullOrEmptyDefault(examples.value(), "Missing examples."))
-				.replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "    "));
-
-		DocumentationId DocID = c.getAnnotation(DocumentationId.class);
-		String ID = DocID != null ? DocID.value() : info.c.getSimpleName();
-		// Fix duplicated IDs
-		if (page != null) {
-			if (page.contains("#" + ID + "\"")) {
-				ID = ID + "-" + (StringUtils.countMatches(page, "#" + ID + "\"") + 1);
+		} else {
+			currentElement = getElement(name.value(), plugin);
+			if (currentElement != null) {
+				String[] value = new String[]{ currentElement.getDesc() + " (Source: skUnity)" };
+				desc = desc.replace("${element.desc}", Joiner.on("\n").join(getNullOrEmptyDefault(value, "Unknown description.")).replace("\n\n", "<p>"));
+				desc = desc.replace("${element.desc-safe}", Joiner.on("\n").join(getNullOrEmptyDefault(value, "Unknown description."))
+					.replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "    "));
 			}
 		}
-		desc = desc.replace("${element.id}", ID);
+
+		Examples examples = c.getAnnotation(Examples.class);
+		if (examples != null) {
+			desc = desc.replace("${element.examples}", Joiner.on("<br>").join(getNullOrEmptyDefault(examples.value(), "Missing examples.")));
+			desc = desc.replace("${element.examples-safe}", Joiner.on("\\n").join(getNullOrEmptyDefault(examples.value(), "Missing examples."))
+				.replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "    "));
+		} else {
+			if (currentElement == null) {
+				currentElement = getElement(name.value(), plugin);
+			}
+			if (currentElement != null) {
+				List<Example> examples1 = currentElement.getExamples();
+				if (!examples1.isEmpty()) {
+					Example example = examples1.get(0);
+					String[] value = new String[]{ example.getExample()+"\n("+example.getVotes()+" votes)" };
+					desc = desc.replace("${element.examples}", Joiner.on("<br>").join(getNullOrEmptyDefault(value, "Missing examples.")));
+					desc = desc.replace("${element.examples-safe}", Joiner.on("\\n").join(getNullOrEmptyDefault(value, "Missing examples."))
+						.replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "    "));
+				}
+			}
+		}
+
+		desc = desc.replace("${element.id}", info.c.getSimpleName());
 
 		Events events = c.getAnnotation(Events.class);
 		assert desc != null;
@@ -464,6 +499,12 @@ public class HTMLGenerator {
 
 		assert desc != null;
 		return desc;
+	}
+
+	@org.jetbrains.annotations.Nullable
+	private Element getElement(String name, String plugin) {
+		Optional<Element> addon = elements.stream().filter(a -> a.getName().equals(name) && a.getAddon().equals(plugin)).findFirst();
+		return addon.orElse(null);
 	}
 	
 	private String generateEvent(String descTemp, SkriptEventInfo<?> info, @Nullable String page) {

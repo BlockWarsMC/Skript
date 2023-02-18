@@ -779,7 +779,7 @@ public class ScriptLoader {
 				try {
 					trigger = new Trigger(config.getFile(), event.event, event.info.getSecond(), event.items);
 					trigger.setLineNumber(event.node.getLine()); // Set line number for debugging
-					trigger.setDebugLabel(config.getFileName() + ": line " + event.node.getLine());
+					trigger.setDebugLabel(config.getFileName() + ": line " + event.node.getLine() + " (" + event.event + ")");
 				} finally {
 					getParser().deleteCurrentEvent();
 				}

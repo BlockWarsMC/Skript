@@ -5,7 +5,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import java.time.LocalTime
 
 plugins {
-	id 'com.github.hierynomus.license' version '0.16.1'
 	id 'maven-publish'
 	id 'java'
 	id 'com.github.johnrengelman.shadow' version '7.1.2'
@@ -134,15 +133,6 @@ publishing {
 			}
 		}
 	}
-}
-
-license {
-	header file('licenseheader.txt')
-	exclude('**/Metrics.java') // Not under GPLv3
-	exclude('**/BurgerHelper.java') // Not exclusively GPLv3
-	exclude('**/*.sk') // Sample scripts and maybe aliases
-	exclude('**/*.lang') // Language files do not have headers (still under GPLv3)
-	exclude('**/*.json') // JSON files do not have headers
 }
 
 // Task to check that test scripts are named correctly
@@ -307,7 +297,7 @@ task nightlyResources(type: ProcessResources) {
 
 task nightlyRelease(type: ShadowJar) {
 	from sourceSets.main.output
-	dependsOn nightlyResources, licenseMain
+	dependsOn nightlyResources
 	archiveName = 'Skript-blockwars.jar'
 	manifest {
 		attributes(

@@ -18,6 +18,7 @@
  */
 package ch.njol.skript.events;
 
+import ch.njol.skript.timings.SkriptTimings;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.event.Event;
@@ -91,7 +92,10 @@ public class EvtPeriodical extends SelfRegisteringSkriptEvent {
 		final ScheduledEvent e = w == null ? new ScheduledNoWorldEvent() : new ScheduledEvent(w);
 		SkriptEventHandler.logEventStart(e);
 		SkriptEventHandler.logTriggerStart(t);
+		Object timings = null;
+		if (SkriptTimings.enabled()) timings = SkriptTimings.start(t.getDebugLabel());
 		t.execute(e);
+		SkriptTimings.stop(timings);
 		SkriptEventHandler.logTriggerEnd(t);
 		SkriptEventHandler.logEventEnd();
 	}

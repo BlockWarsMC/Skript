@@ -30,6 +30,7 @@ import ch.njol.skript.log.RetainingLogHandler;
 import ch.njol.skript.log.SkriptLogger;
 import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.registrations.Converters;
+import ch.njol.skript.timings.SkriptTimings;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
@@ -296,7 +297,18 @@ public class FunctionReference<T> {
 		}
 		
 		// Execute the function
-		return function.execute(params);
+
+		Object timings = null;
+		if (SkriptTimings.enabled()) {
+			String debugLabel = "Execute " + function.toString();
+			if (node != null) {
+				debugLabel = "Execute function " + node;
+			}
+			timings = SkriptTimings.start(debugLabel);
+		}
+		T[] result = function.execute(params);
+		SkriptTimings.stop(timings);
+		return result;
 	}
 	
 	public boolean isSingle() {
