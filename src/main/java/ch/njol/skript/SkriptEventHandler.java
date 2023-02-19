@@ -89,9 +89,9 @@ public abstract class SkriptEventHandler {
 			listeners[i] = new PriorityListener(priorities[i]);
 		}
 	}
-	
+
 	private static final List<NonNullPair<Class<? extends Event>, Trigger>> triggers = new ArrayList<>();
-	
+
 	private static final List<Trigger> selfRegisteredTriggers = new ArrayList<>();
 	
 	private static Iterator<Trigger> getTriggers(Class<? extends Event> event) {
@@ -181,7 +181,12 @@ public abstract class SkriptEventHandler {
 
 	public static void addTrigger(Class<? extends Event>[] events, Trigger trigger) {
 		for (Class<? extends Event> e : events) {
-			triggers.add(new NonNullPair<>(e, trigger));
+			NonNullPair<Class<? extends Event>, Trigger> pair = new NonNullPair<>(e, trigger);
+			if (disabledEventFiles.contains(pair.getSecond().getScript())) {
+				disabledTriggers.add(pair);
+			} else {
+				triggers.add(pair);
+			}
 		}
 	}
 	
@@ -192,7 +197,12 @@ public abstract class SkriptEventHandler {
 	 */
 	public static void addSelfRegisteringTrigger(Trigger t) {
 		assert t.getEvent() instanceof SelfRegisteringSkriptEvent;
-		selfRegisteredTriggers.add(t);
+		if (disabledEventFiles.contains(t.getScript())) {
+			disabledSelfRegisteredTriggers.add(t);
+		} else {
+			((SelfRegisteringSkriptEvent) t.getEvent()).register(t);
+			selfRegisteredTriggers.add(t);
+		}
 	}
 	
 	static ScriptInfo removeTriggers(File script) {
@@ -201,6 +211,11 @@ public abstract class SkriptEventHandler {
 		
 		int previousSize = triggers.size();
 		triggers.removeIf(pair -> script.equals(pair.getSecond().getScript()));
+
+		// Remove disabled triggers
+		disabledTriggers.removeIf(pair -> script.equals(pair.getSecond().getScript()));
+		disabledSelfRegisteredTriggers.removeIf(pair -> script.equals(pair.getScript()));
+
 		info.triggers += previousSize - triggers.size();
 		
 		for (int i = 0; i < selfRegisteredTriggers.size(); i++) {
@@ -216,6 +231,50 @@ public abstract class SkriptEventHandler {
 		info.commands = Commands.unregisterCommands(script);
 		
 		return info;
+	}
+
+	private static final Set<File> disabledEventFiles = new HashSet<>();
+	private static final List<NonNullPair<Class<? extends Event>, Trigger>> disabledTriggers = new ArrayList<>();
+	private static final List<Trigger> disabledSelfRegisteredTriggers = new ArrayList<>();
+
+	public static boolean isEventsDisabled(File script) {
+		return disabledEventFiles.contains(script);
+	}
+
+	public static void disableEvents(File script) {
+		disabledEventFiles.add(script);
+		triggers.removeIf(pair -> {
+			boolean equals = script.equals(pair.getSecond().getScript());
+			if (equals) disabledTriggers.add(pair);
+			return equals;
+		});
+		for (int i = 0; i < selfRegisteredTriggers.size(); i++) {
+			Trigger t = selfRegisteredTriggers.get(i);
+			if (script.equals(t.getScript())) {
+				((SelfRegisteringSkriptEvent) t.getEvent()).unregister(t);
+				selfRegisteredTriggers.remove(i);
+				disabledSelfRegisteredTriggers.add(t);
+				i--;
+			}
+		}
+	}
+	public static void enableEvents(File script) {
+		disabledEventFiles.remove(script);
+		disabledTriggers.removeIf(pair -> {
+			boolean equals = script.equals(pair.getSecond().getScript());
+			if (equals) triggers.add(pair);
+			return equals;
+		});
+		for (int i = 0; i < disabledSelfRegisteredTriggers.size(); i++) {
+			Trigger t = disabledSelfRegisteredTriggers.get(i);
+			if (script.equals(t.getScript())) {
+				((SelfRegisteringSkriptEvent) t.getEvent()).register(t);
+				disabledSelfRegisteredTriggers.remove(i);
+				selfRegisteredTriggers.add(t);
+				i--;
+			}
+		}
+		registerBukkitEvents();
 	}
 	
 	static void removeAllTriggers() {

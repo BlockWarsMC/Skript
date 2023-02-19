@@ -215,7 +215,7 @@ public class ScriptLoader {
 	/**
 	 * Filter for enabled scripts & folders.
 	 */
-	private static final FileFilter scriptFilter =
+	public static final FileFilter scriptFilter =
 		f -> f != null
 			&& (f.isDirectory() && !f.getName().startsWith(".") || !f.isDirectory() && StringUtils.endsWithIgnoreCase(f.getName(), ".sk"))
 			&& !f.getName().startsWith("-") && !f.isHidden();
@@ -411,7 +411,7 @@ public class ScriptLoader {
 	 * @return a {@link CompletableFuture} of the type specified by
 	 * the generic of the {@link Supplier} parameter.
 	 */
-	private static <T> CompletableFuture<T> makeFuture(Supplier<T> supplier, OpenCloseable openCloseable) {
+	public static <T> CompletableFuture<T> makeFuture(Supplier<T> supplier, OpenCloseable openCloseable) {
 		CompletableFuture<T> future = new CompletableFuture<>();
 		Runnable task = () -> {
 			try {
@@ -785,7 +785,6 @@ public class ScriptLoader {
 				}
 				
 				if (event.info.getSecond() instanceof SelfRegisteringSkriptEvent) {
-					((SelfRegisteringSkriptEvent) event.info.getSecond()).register(trigger);
 					SkriptEventHandler.addSelfRegisteringTrigger(trigger);
 				} else {
 					SkriptEventHandler.addTrigger(event.info.getFirst().events, trigger);

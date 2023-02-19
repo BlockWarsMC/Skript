@@ -306,7 +306,9 @@ public class FunctionReference<T> {
 			}
 			timings = SkriptTimings.start(debugLabel);
 		}
-		T[] result = function.execute(params);
+		T[] result = CollectionUtils.array();
+		try { result = function.execute(params); }
+		catch (Exception ex) { Skript.exception(ex); }
 		SkriptTimings.stop(timings);
 		return result;
 	}
