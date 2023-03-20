@@ -379,24 +379,29 @@ public final class SkriptEventHandler {
 	}
 
 	public static void enableEvents(File script) {
+		disabledEventFiles.remove(script);
 		disabledTriggers.removeIf(pair -> {
 			Trigger trigger = pair.getSecond();
 
 			if (trigger.getScript() == null) return false;
-			if (trigger.getScript().getConfig().getFile() != script) return false;
+			@Nullable File file = trigger.getScript().getConfig().getFile();
+			if (file == null || !file.equals(script)) return false;
 			registerBukkitEvents(pair.getSecond(), pair.getFirst());
 			return true;
 		});
 	}
 
 	public static void disableEvents(File script) {
+		disabledEventFiles.add(script);
+
 		Set<Trigger> disabled = new HashSet<>();
-		triggers.forEach(pair -> {
+		new ArrayList<>(triggers).forEach(pair -> {
 			Trigger trigger = pair.getSecond();
 			if (disabled.contains(trigger)) return;
 
 			if (trigger.getScript() == null) return;
-			if (trigger.getScript().getConfig().getFile() != script) return;
+			@Nullable File file = trigger.getScript().getConfig().getFile();
+			if (file == null || !file.equals(script)) return;
 			unregisterBukkitEvents(trigger);
 
 			disabledTriggers.add(new NonNullPair<>(trigger.getEvent().getEventClasses(), trigger));
