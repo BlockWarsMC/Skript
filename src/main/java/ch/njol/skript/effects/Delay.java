@@ -18,14 +18,6 @@
  */
 package ch.njol.skript.effects;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.WeakHashMap;
-
-import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
-import org.eclipse.jdt.annotation.Nullable;
-
 import ch.njol.skript.Skript;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
@@ -41,28 +33,36 @@ import ch.njol.skript.timings.SkriptTimings;
 import ch.njol.skript.util.Timespan;
 import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
+import org.bukkit.Bukkit;
+import org.bukkit.event.Event;
+import org.eclipse.jdt.annotation.Nullable;
 
-/**
- * @author Peter Güttinger
- */
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 @Name("Delay")
 @Description("Delays the script's execution by a given timespan. Please note that delays are not persistent, e.g. trying to create a tempban script with <code>ban player → wait 7 days → unban player</code> will not work if you restart your server anytime within these 7 days. You also have to be careful even when using small delays!")
-@Examples({"wait 2 minutes",
-		"halt for 5 minecraft hours",
-		"wait a tick"})
+@Examples({
+	"wait 2 minutes",
+	"halt for 5 minecraft hours",
+	"wait a tick"
+})
 @Since("1.4")
 public class Delay extends Effect {
+
 	static {
 		Skript.registerEffect(Delay.class, "(wait|halt) [for] %timespan%");
 	}
 
-	@SuppressWarnings("null")
+	@SuppressWarnings("NotNullFieldNotInitialized")
 	protected Expression<Timespan> duration;
 
 	@SuppressWarnings({"unchecked", "null"})
 	@Override
-	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final ParseResult parseResult) {
+	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		getParser().setHasDelayBefore(Kleenean.TRUE);
+
 		duration = (Expression<Timespan>) exprs[0];
 		if (duration instanceof Literal) { // If we can, do sanity check for delays
 			long millis = ((Literal<Timespan>) duration).getSingle().getMilliSeconds();
@@ -70,19 +70,21 @@ public class Delay extends Effect {
 				Skript.warning("Delays less than one tick are not possible, defaulting to one tick.");
 			}
 		}
+
 		return true;
 	}
 
 	@Override
 	@Nullable
-	protected TriggerItem walk(final Event e) {
+	protected TriggerItem walk(Event e) {
 		debug(e, true);
-		final long start = Skript.debug() ? System.nanoTime() : 0;
-		final TriggerItem next = getNext();
+		long start = Skript.debug() ? System.nanoTime() : 0;
+		TriggerItem next = getNext();
 		if (next != null && Skript.getInstance().isEnabled()) { // See https://github.com/SkriptLang/Skript/issues/3702
-			delayed.add(e);
-			final Timespan d = duration.getSingle(e);
-			if (d == null)
+			addDelayedEvent(e);
+
+			Timespan duration = this.duration.getSingle(e);
+			if (duration == null)
 				return null;
 			
 			// Back up local variables
@@ -112,7 +114,7 @@ public class Delay extends Effect {
 					SkriptTimings.stop(timing); // Stop timing if it was even started
 				}
 			};
-			Long delay = d.getTicks_i() < 1 ? 1 : d.getTicks_i();
+			Long delay = Math.max(duration.getTicks_i(), 1);
 			if (!Thread.currentThread().getName().equalsIgnoreCase("Server thread")) {
 				Bukkit.getScheduler().runTaskLaterAsynchronously(Skript.getInstance(), runnable, delay);
 				return null;
@@ -122,25 +124,34 @@ public class Delay extends Effect {
 		return null;
 	}
 
-	@SuppressWarnings("null")
-	protected final static Set<Event> delayed = Collections.newSetFromMap(new WeakHashMap<Event, Boolean>());
-
-	public static boolean isDelayed(final Event e) {
-		return delayed.contains(e);
-	}
-
-	public static void addDelayedEvent(Event event){
-		delayed.add(event);
-	}
-
 	@Override
-	protected void execute(final Event e) {
+	protected void execute(Event event) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
-		return "wait for " + duration.toString(e, debug) + (e == null ? "" : "...");
+	public String toString(@Nullable Event event, boolean debug) {
+		return "wait for " + duration.toString(event, debug) + (event == null ? "" : "...");
+	}
+
+	private static final Set<Event> DELAYED =
+		Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+
+	/**
+	 * The main method for checking if the execution of {@link TriggerItem}s has been delayed.
+	 * @param event The event to check for a delay.
+	 * @return Whether {@link TriggerItem} execution has been delayed.
+	 */
+	public static boolean isDelayed(Event event) {
+		return DELAYED.contains(event);
+	}
+
+	/**
+	 * The main method for marking the execution of {@link TriggerItem}s as delayed.
+	 * @param event The event to mark as delayed.
+	 */
+	public static void addDelayedEvent(Event event) {
+		DELAYED.add(event);
 	}
 
 }
