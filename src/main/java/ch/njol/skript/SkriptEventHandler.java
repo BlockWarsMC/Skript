@@ -34,6 +34,7 @@ import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.RegisteredListener;
 import org.eclipse.jdt.annotation.Nullable;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public final class SkriptEventHandler {
 
@@ -366,6 +368,41 @@ public final class SkriptEventHandler {
 			}
 		}
 		return false;
+	}
+
+	// DYNAMIC EVENT ENABLING / DISABLING
+	public static final Set<File> disabledEventFiles = new HashSet<>();
+	public static final Set<NonNullPair< Class<? extends Event>[], Trigger>> disabledTriggers = new HashSet<>();
+
+	public static boolean isEventsDisabled(File script) {
+		return disabledEventFiles.contains(script);
+	}
+
+	public static void enableEvents(File script) {
+		disabledTriggers.removeIf(pair -> {
+			Trigger trigger = pair.getSecond();
+
+			if (trigger.getScript() == null) return false;
+			if (trigger.getScript().getConfig().getFile() != script) return false;
+			registerBukkitEvents(pair.getSecond(), pair.getFirst());
+			return true;
+		});
+	}
+
+	public static void disableEvents(File script) {
+		Set<Trigger> disabled = new HashSet<>();
+		triggers.forEach(pair -> {
+			Trigger trigger = pair.getSecond();
+			if (disabled.contains(trigger)) return;
+
+			if (trigger.getScript() == null) return;
+			if (trigger.getScript().getConfig().getFile() != script) return;
+			unregisterBukkitEvents(trigger);
+
+			disabledTriggers.add(new NonNullPair<>(trigger.getEvent().getEventClasses(), trigger));
+
+			disabled.add(trigger);
+		});
 	}
 
 }

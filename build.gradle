@@ -64,7 +64,7 @@ task checkAliases {
 }
 
 task testJar(type: ShadowJar) {
-	dependsOn(compileTestJava, licenseTest)
+	dependsOn(compileTestJava)
 	archiveFileName = 'Skript-JUnit.jar'
 	from sourceSets.test.output, sourceSets.main.output, project.configurations.testShadow
 }
@@ -153,15 +153,6 @@ publishing {
 	}
 }
 
-license {
-	header file('licenseheader.txt')
-	exclude('**/Metrics.java') // Not under GPLv3
-	exclude('**/BurgerHelper.java') // Not exclusively GPLv3
-	exclude('**/*.sk') // Sample scripts and maybe aliases
-	exclude('**/*.lang') // Language files do not have headers (still under GPLv3)
-	exclude('**/*.json') // JSON files do not have headers
-}
-
 javadoc {
 	source = sourceSets.main.allJava
 	classpath = configurations.compileClasspath
@@ -202,7 +193,6 @@ void createTestTask(String name, String desc, String environments, int javaVersi
 	boolean junit = modifiers.contains(Modifiers.JUNIT)
 	tasks.register(name, JavaExec) {
 		description = desc;
-		dependsOn licenseTest
 		if (junit) {
 			dependsOn testJar
 		} else {
@@ -244,7 +234,7 @@ void createTestTask(String name, String desc, String environments, int javaVersi
 
 def latestEnv = 'java17/paper-1.19.3.json'
 def latestJava = 17
-def oldestJava = 8
+def oldestJava = 17
 
 tasks.withType(JavaCompile).configureEach {
 	options.compilerArgs += ['-source', '' + oldestJava, '-target', '' + oldestJava]
@@ -364,7 +354,7 @@ task nightlyResources(type: ProcessResources) {
 task nightlyRelease(type: ShadowJar) {
 	from sourceSets.main.output
 	dependsOn nightlyResources
-	archiveName = 'Skript-blockwars.jar'
+	archiveFileName = 'Skript-blockwars.jar'
 	manifest {
 		attributes(
 			'Name': 'ch/njol/skript',

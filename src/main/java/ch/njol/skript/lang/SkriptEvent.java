@@ -25,6 +25,7 @@ import ch.njol.skript.SkriptEventHandler;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.events.EvtClick;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
+import ch.njol.util.NonNullPair;
 import org.skriptlang.skript.lang.script.Script;
 import org.skriptlang.skript.lang.entry.EntryContainer;
 import org.skriptlang.skript.lang.structure.Structure;
@@ -36,6 +37,9 @@ import org.eclipse.jdt.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+
+import static ch.njol.skript.SkriptEventHandler.disabledEventFiles;
+import static ch.njol.skript.SkriptEventHandler.disabledTriggers;
 
 /**
  * A SkriptEvent is like a condition. It is called when any of the registered events occurs.
@@ -150,6 +154,12 @@ public abstract class SkriptEvent extends Structure {
 	 */
 	@Override
 	public boolean postLoad() {
+		// Is disabled
+		if (trigger.getScript() != null && disabledEventFiles.contains(trigger.getScript().getConfig().getFile())) {
+			disabledTriggers.add(new NonNullPair<>(getEventClasses(), trigger));
+			return true;
+		}
+
 		SkriptEventHandler.registerBukkitEvents(trigger, getEventClasses());
 		return true;
 	}
@@ -160,6 +170,7 @@ public abstract class SkriptEvent extends Structure {
 	 */
 	@Override
 	public void unload() {
+		disabledTriggers.removeIf(pair -> pair.getSecond() == trigger);
 		SkriptEventHandler.unregisterBukkitEvents(trigger);
 	}
 

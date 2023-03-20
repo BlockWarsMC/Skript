@@ -126,8 +126,8 @@ public class EvtPeriodical extends SkriptEvent {
 		SkriptEventHandler.logTriggerStart(trigger);
 
 		Object timings = null;
-		if (SkriptTimings.enabled()) timings = SkriptTimings.start(t.getDebugLabel());
-		trigger.execute(e);
+		if (SkriptTimings.enabled()) timings = SkriptTimings.start(trigger.getDebugLabel());
+		trigger.execute(event);
 		SkriptTimings.stop(timings);
 
 		SkriptEventHandler.logTriggerEnd(trigger);
