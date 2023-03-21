@@ -4,9 +4,10 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import java.time.LocalTime
 
 plugins {
+	id 'com.github.johnrengelman.shadow' version '8.1.1'
+	id 'com.github.hierynomus.license' version '0.16.1'
 	id 'maven-publish'
 	id 'java'
-	id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 configurations {
@@ -31,9 +32,6 @@ dependencies {
 	shadow "net.kyori:adventure-platform-bukkit:4.1.2"
 	shadow "net.kyori:adventure-text-serializer-bungeecord:4.1.2"
 
-	shadow group: 'io.papermc', name: 'paperlib', version: '1.0.7'
-	shadow group: 'org.bstats', name: 'bstats-bukkit', version: '3.0.0'
-	implementation group: 'io.papermc.paper', name: 'paper-api', version: '1.19.2-R0.1-SNAPSHOT'
 	implementation group: 'org.eclipse.jdt', name: 'org.eclipse.jdt.annotation', version: '2.2.600'
 	implementation group: 'com.google.code.findbugs', name: 'findbugs', version: '3.0.1'
 	implementation group: 'com.sk89q.worldguard', name: 'worldguard-legacy', version: '7.0.0-SNAPSHOT'
