@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static ch.njol.skript.ScriptLoader.disabledScriptFilter;
+import static ch.njol.skript.ScriptLoader.loadedScriptFilter;
 import static ch.njol.skript.SkriptCommand.getScriptFromName;
 
 /**
@@ -74,7 +75,7 @@ public class EffScriptEvents extends Effect {
 		if (!directory.isDirectory()) {
 			return Collections.singletonList(directory);
 		}
-		File[] files = directory.listFiles(disabledScriptFilter);
+		File[] files = directory.listFiles(loadedScriptFilter);
 		Arrays.sort(files);
 		List<File> loadedDirectories = new ArrayList<>(files.length);
 		List<File> loadedFiles = new ArrayList<>(files.length);

@@ -59,7 +59,7 @@ public class ExprScripts extends SimpleExpression<String> {
 				"[all [of the]] (disabled|unloaded) scripts [(1:without ([subdirectory] paths|parents))]");
 	}
 
-	private static final String SCRIPTS_PATH = new File(Skript.getInstance().getDataFolder(), Skript.SCRIPTSFOLDER).getPath() + File.separator;
+	private static final String SCRIPTS_PATH = new File(Skript.getInstance().getDataFolder().getAbsoluteFile(), Skript.SCRIPTSFOLDER).getPath() + File.separator;
 
 	private boolean includeEnabled;
 	private boolean includeDisabled;

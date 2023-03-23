@@ -502,7 +502,7 @@ public class SkriptCommand implements CommandExecutor {
 		}
 	}
 
-	private static File toggleFile(File file, boolean enable) throws IOException {
+	public static File toggleFile(File file, boolean enable) throws IOException {
 		if (enable)
 			return FileUtils.move(
 				file,
@@ -516,7 +516,7 @@ public class SkriptCommand implements CommandExecutor {
 		);
 	}
 	
-	private static Set<File> toggleFiles(File folder, boolean enable) throws IOException {
+	public static Set<File> toggleFiles(File folder, boolean enable) throws IOException {
 		FileFilter filter = enable ? ScriptLoader.getDisabledScriptsFilter() : ScriptLoader.getLoadedScriptsFilter();
 
 		Set<File> changed = new HashSet<>();

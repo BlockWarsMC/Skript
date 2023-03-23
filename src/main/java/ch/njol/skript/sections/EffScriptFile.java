@@ -23,16 +23,18 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import ch.njol.skript.command.CommandEvent;
 import ch.njol.skript.command.ScriptCommand;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.lang.*;
 import ch.njol.skript.log.RedirectingLogHandler;
-import ch.njol.skript.log.TimingLogHandler;
 import ch.njol.skript.registrations.EventValues;
+import ch.njol.skript.util.ExceptionUtils;
 import ch.njol.skript.util.Getter;
 import ch.njol.skript.variables.Variables;
+import ch.njol.util.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;
@@ -50,24 +52,32 @@ import ch.njol.skript.doc.Since;
 import ch.njol.skript.util.FileUtils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.OpenCloseable;
-import org.enginehub.piston.Command;
 import org.jetbrains.annotations.NotNull;
 import org.skriptlang.skript.lang.script.Script;
 
-import static ch.njol.skript.SkriptCommand.reloaded;
-import static ch.njol.skript.SkriptCommand.reloading;
+import static ch.njol.skript.SkriptCommand.toggleFiles;
 
 @Name("Enable/Disable/Reload Script File")
 @Description("Enables, disables, or reloads a script file.")
 @Examples({"reload script \"test\"",
-			"enable script file \"testing\"",
-			"unload script file \"script.sk\""})
+	"enable script file \"testing\"",
+	"unload script file \"script.sk\""})
 @Since("2.4")
 public class EffScriptFile extends EffectSection {
 
 	public static class ScriptLoadEvent extends Event {
+		private final String file;
+		private final boolean success;
 
-		public ScriptLoadEvent() {
+		public ScriptLoadEvent(String file, boolean success) {
+			this.file = file;
+			this.success = success;
+		}
+		public String getFile() {
+			return file;
+		}
+		public boolean isSuccess() {
+			return success;
 		}
 
 		@Override
@@ -78,10 +88,23 @@ public class EffScriptFile extends EffectSection {
 
 	static {
 		Skript.registerSection(EffScriptFile.class, "(1¦enable|1¦load|2¦reload|3¦disable|3¦unload) s(c|k)ript[s] [file] %string%");
+
+		EventValues.registerEventValue(ScriptLoadEvent.class, String.class, new Getter<String, ScriptLoadEvent>() {
+			@Override
+			public String get(ScriptLoadEvent arg) {
+				return arg.getFile();
+			}
+		}, 0);
+		EventValues.registerEventValue(ScriptLoadEvent.class, Boolean.class, new Getter<Boolean, ScriptLoadEvent>() {
+			@Override
+			public Boolean get(ScriptLoadEvent arg) {
+				return arg.isSuccess();
+			}
+		}, 0);
 	}
-	
+
 	private static final int ENABLE = 1, RELOAD = 2, DISABLE = 3;
-	
+
 	private int mark;
 	@Nullable
 	private Expression<String> fileName;
@@ -102,16 +125,18 @@ public class EffScriptFile extends EffectSection {
 	public String toString(@Nullable Event e, boolean debug) {
 		return (mark == ENABLE ? "enable" : mark == RELOAD ? "disable" : mark == DISABLE ? "unload" : "") + " script file " + (fileName != null ? fileName.toString(e, debug) : "");
 	}
-	
+
 	@Override
 	@Nullable
 	protected TriggerItem walk(Event e) {
-		String name = fileName.getSingle(e);
-		if (name == null)
+		String sName = fileName != null ? fileName.getSingle(e) : "";
+		String name = sName != null ? sName : "";
+
+		File file = SkriptCommand.getScriptFromName(name);
+		if (file == null) {
+			runTrigger(name, false, e);
 			return super.walk(e, false);
-		File scriptFile = SkriptCommand.getScriptFromName(name);
-		if (scriptFile == null)
-			return super.walk(e, false);
+		}
 
 		OpenCloseable logHandler = OpenCloseable.EMPTY;
 		if (e instanceof CommandEvent) {
@@ -120,56 +145,73 @@ public class EffScriptFile extends EffectSection {
 
 		switch (mark) {
 			case ENABLE -> {
-				if (ScriptLoader.getLoadedScriptsFilter().accept(scriptFile))
-					return super.walk(e, false);
+				if (!file.isDirectory()) {
+					try {
+						file = SkriptCommand.toggleFile(file, true);
+					} catch (IOException ex) {
+						runTrigger(name, true, e);
+						break;
+					}
 
-				try {
-					// TODO Central methods to be used between here and SkriptCommand should be created for enabling/disabling (renaming) files
-					scriptFile = FileUtils.move(
-						scriptFile,
-						new File(scriptFile.getParentFile(), scriptFile.getName().substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH)),
-						false
-					);
-				} catch (IOException ex) {
-					//noinspection ThrowableNotThrown
-					Skript.exception(ex, "Error while enabling script file: " + name);
-					return super.walk(e, false);
+					final String fileName = file.getName();
+					ScriptLoader.loadScripts(file, logHandler)
+						.thenAccept(scriptInfo -> runTrigger(name, true, e));
+				} else {
+					Set<File> scriptFiles;
+					try {
+						scriptFiles = toggleFiles(file, true);
+					} catch (IOException ex) {
+						runTrigger(name, true, e);
+						break;
+					}
+
+					final String fileName = file.getName();
+					ScriptLoader.loadScripts(scriptFiles, logHandler)
+						.thenAccept(scriptInfo -> runTrigger(name, true, e));
 				}
-
-				ScriptLoader.loadScripts(scriptFile, logHandler).thenAccept(action -> {
-					runTrigger(e);
-				});
 			}
 			case RELOAD -> {
-				if (ScriptLoader.getDisabledScriptsFilter().accept(scriptFile))
-					return super.walk(e, false);
-
-				Script script = ScriptLoader.getScript(scriptFile);
-				if (script != null)
-					ScriptLoader.unloadScript(script);
-
-				ScriptLoader.loadScripts(scriptFile, logHandler).thenAccept(action -> {
-					runTrigger(e);
-				});
+				if (!file.isDirectory()) {
+					if (file.getName().startsWith("-")) {
+						runTrigger(name, false, e);
+						break;
+					}
+					Script script = ScriptLoader.getScript(file);
+					if (script != null)
+						ScriptLoader.unloadScript(script);
+					ScriptLoader.loadScripts(file, logHandler)
+						.thenAccept(scriptInfo -> runTrigger(name, true, e));
+				} else {
+					ScriptLoader.unloadScripts(ScriptLoader.getScripts(file));
+					ScriptLoader.loadScripts(file, logHandler)
+						.thenAccept(scriptInfo -> runTrigger(name, true, e));
+				}
 			}
 			case DISABLE -> {
-				if (ScriptLoader.getDisabledScriptsFilter().accept(scriptFile))
-					return super.walk(e, false);
+				if (!file.isDirectory()) {
+					if (file.getName().startsWith("-")) {
+						runTrigger(name, false, e);
+						break;
+					}
 
-				Script script = ScriptLoader.getScript(scriptFile);
-				if (script != null)
+					Script script = ScriptLoader.getScript(file);
+					if (script == null) {
+						runTrigger(name, false, e);
+						break;
+					}
+
 					ScriptLoader.unloadScript(script);
+					runTrigger(name, true, e);
+				} else {
+					ScriptLoader.unloadScripts(ScriptLoader.getScripts(file));
 
-				try {
-					FileUtils.move(
-						scriptFile,
-						new File(scriptFile.getParentFile(), ScriptLoader.DISABLED_SCRIPT_PREFIX + scriptFile.getName()),
-						false
-					);
-				} catch (IOException ex) {
-					//noinspection ThrowableNotThrown
-					Skript.exception(ex, "Error while disabling script file: " + name);
-					return super.walk(e, false);
+					try {
+						toggleFiles(file, false);
+					} catch (Exception ex) {
+						runTrigger(name, false, e);
+						break;
+					}
+					runTrigger(name, true, e);
 				}
 			}
 			default -> {
@@ -179,9 +221,9 @@ public class EffScriptFile extends EffectSection {
 		return super.walk(e, false);
 	}
 
-	private void runTrigger(Event runIn) {
+	private void runTrigger(String name, Boolean success, Event runIn) {
 		if (trigger != null) {
-			ScriptLoadEvent ev = new ScriptLoadEvent();
+			ScriptLoadEvent ev = new ScriptLoadEvent(name, success);
 			Object localVars = Variables.copyLocalVariables(runIn);
 			Variables.setLocalVariables(ev, localVars);
 			trigger.execute(ev);
