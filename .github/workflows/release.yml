@@ -34,7 +34,7 @@ jobs:
                 host: ${{ secrets.FTP_SERVER }}
                 user: ${{ secrets.FTP_USERNAME }}
                 password: ${{ secrets.FTP_PASSWORD }}
-                localDir: "build/libs/Skript-blockwars.jar"
+                localDir: "build/libs/"
                 remoteDir: "/plugins/"
             - name: Deploy Stage
               uses: fjogeleit/http-request-action@v1
