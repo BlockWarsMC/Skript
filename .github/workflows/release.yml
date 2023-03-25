@@ -26,3 +26,21 @@ jobs:
                   prerelease: false
                   automatic_release_tag: 'bw.${{ github.run_number }}'
                   files: build/libs/*.jar
+              
+              # Deloy to the BlockWars server
+            - name: Upload SFTP
+              uses: genietim/ftp-action@releases/v4
+              with:
+                host: ${{ secrets.FTP_SERVER }}
+                user: ${{ secrets.FTP_USERNAME }}
+                password: ${{ secrets.FTP_PASSWORD }}
+                localDir: "build/libs/Skript-blockwars.jar"
+                remoteDir: "/plugins/"
+            - name: Deploy Stage
+              uses: fjogeleit/http-request-action@v1
+              with:
+                url: 'https://panel.ington.net/api/client/servers/${{ secrets.SERVER_ID }}/command'
+                method: 'POST'
+                bearerToken: ${{ secrets.PTERODACTYL_KEY }}
+                customHeaders: '{"Content-Type": "application/json"}'
+                data: '{"command":"dev:plugindeploy Skript"}'
