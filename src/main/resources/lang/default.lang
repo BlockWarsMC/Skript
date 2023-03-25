@@ -1225,18 +1225,21 @@ entities:
 	sniffer:
 		name: sniffer¦s
 		pattern: sniffer(|1¦s)
-	text display:
-		name: text displa¦y¦ies
-		pattern: text displa(y|1¦ies)
-	item display:
-		name: item displa¦y¦ies
-		pattern: item displa(y|1¦ies)
-	block display:
-		name: block displa¦y¦ies
-		pattern: block displa(y|1¦ies)
 	interaction:
 		name: interaction¦s
 		pattern: interaction(|1¦s)
+	display:
+		name: display¦s
+		pattern: display(|1¦s)
+	block display:
+		name: block display¦s
+		pattern: block display(|1¦s)
+	item display:
+		name: item display¦s
+		pattern: item display(|1¦s)
+	text display:
+		name: text display¦s
+		pattern: text display(|1¦s)
 
 # -- Heal Reasons --
 heal reasons:
@@ -1720,7 +1723,7 @@ visual effects:
 		shriek:
 			name: shriek @-
 			pattern: shriek
-		
+
 		# 1.19.4 particles
 		dripping_cherry_leaves:
 			name: dripping cherry leaves @-

@@ -48,9 +48,6 @@ dependencies {
 	compileOnly('com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.4.8')
 }
 
-compileJava.options.encoding = 'UTF-8'
-compileTestJava.options.encoding = 'UTF-8'
-
 task checkAliases {
 	description 'Checks for the existence of the aliases.'
 	doLast {
@@ -221,22 +218,34 @@ void createTestTask(String name, String desc, String environments, int javaVersi
 			project.findProperty('verbosity') ?: "null"
 		]
 
-		if (!gradle.taskGraph.hasTask(":tasks") && !gradle.startParameter.dryRun && modifiers.contains(Modifiers.PROFILE)) {
-			if (!project.hasProperty('profiler'))
-				throw new MissingPropertyException('Add parameter -Pprofiler=<path to profiler>', 'profiler', String.class)
-
-			args += '-agentpath:' + project.property('profiler') + '=port=8849,nowait'
+		// Do first is used when throwing exceptions.
+		// This way it's not called when defining the task.
+		doFirst {
+			if (!gradle.taskGraph.hasTask(":tasks") && !gradle.startParameter.dryRun && modifiers.contains(Modifiers.PROFILE)) {
+				if (!project.hasProperty('profiler'))
+					throw new MissingPropertyException('Add parameter -Pprofiler=<path to profiler>', 'profiler', String.class)
+	
+				args += '-agentpath:' + project.property('profiler') + '=port=8849,nowait'
+			}
 		}
 	}
 }
 
-def latestEnv = 'java17/paper-1.19.3.json'
+def latestEnv = 'java17/paper-1.19.4.json'
 def latestJava = 17
 def oldestJava = 17
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(latestJava))
+}
 
 tasks.withType(JavaCompile).configureEach {
 	options.compilerArgs += ['-source', '' + oldestJava, '-target', '' + oldestJava]
 }
+
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
+
 // Register different Skript testing tasks
 String environments = 'src/test/skript/environments/';
 String env = project.property('testEnv') == null ? latestEnv : project.property('testEnv') + '.json'
