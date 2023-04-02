@@ -1,9 +1,20 @@
-![Skript Language](.github/assets/Cover.jpg)
+# Skript
 
----
+### This is a fork of [Skript](https://github.com/SkriptLang/Skript/), for the Blockwars Minecraft Event!
+- This fork contains changes created by the [Blockwars Team](https://github.com/BlockWarsMC), [SkriptLang](SkriptLang), [TPGamesNL](https://github.com/TPGamesNL) and [AyhamAl-Ali](AyhamAl-Ali)
+- Changes Made:
+  - [Extra Vehicle Events/Expressions](https://github.com/SkriptLang/Skript/pull/4329)
+  - [Adds InventoryMoveItemEvent](https://github.com/SkriptLang/Skript/pull/5462)
+  - Remove Warnings (they were annoying Aso)
+  - Update `EffScriptFile` to an EffectSection
+  - Update `SimpleEvents` to add PlayerInteractEvent
+  - Adds `EffReplaceBlocks` for integration with FAWE
+  - Adds `EffRemoveEntity` to remove an entity instead of killing it
+  - Adds the ability to add fonts and other stylings into titles
+  - Adds disabling/enabling events without disabling/enabling skript files
+#### This fork contains changes specifically for the BlockWars codebase
 
-# Skript [![Build Status](https://travis-ci.org/SkriptLang/Skript.svg?branch=master)](https://travis-ci.org/SkriptLang/Skript)
-**Skript** is a Minecraft plugin for Paper/Spigot, which allows server owners and other people
+Skript is a plugin for Paper/Spigot, which allows server owners and other people
 to modify their servers without learning Java. It can also be useful if you
 *do* know Java; some tasks are quicker to do with Skript, and so it can be used
 for prototyping etc.
@@ -12,38 +23,21 @@ This Github fork of Skript is based on Mirreski's improvements which was built
 on Njol's original Skript.
 
 ## Requirements
-Skript requires **Spigot** to work. You heard it right, **CraftBukkit** does *not* work.
+Skript requires **Spigot** to work. You heard it right, Bukkit does *not* work.
 **Paper**, which is a fork of Spigot, is recommended; it is required for some
 parts of Skript to be available.
 
 Skript supports only the **latest** patch versions of Minecraft 1.9+.
-For example, this means that 1.16.5 is supported, but 1.16.4 is *not*.
+For example, this means that 1.16.4 is supported, but 1.16.3 is *not*.
 Testing with all old patch versions is not feasible for us.
 
 Minecraft 1.8 and earlier are not, and will not be supported. New Minecraft
 versions will be supported as soon as possible.
 
-## Download
-You can find the downloads for each version with their release notes in the [releases page](https://github.com/SkriptLang/Skript/releases).
 
 ## Documentation
-Documentation is available [here](https://docs.skriptlang.org/) for the
+Documentation is available [here](https://skriptlang.github.io/Skript) for the
 latest version of Skript.
-
-## Reporting Issues
-Please see our [contribution guidelines](https://github.com/SkriptLang/Skript/blob/master/.github/contributing.md)
-before reporting issues.
-
-## Help Us Test
-Wanting to help test Skript's new features and releases?
-You can head on over to our [Official Testing Discord](https://discord.gg/ZPsZAg6ygu), and whenever we start testing new features/releases you will be the first to know.
-
-Please note this is not a help Discord.
-If you require assistance with how to use Skript please check out the [Relevant Links](https://github.com/SkriptLang/Skript#relevant-links) section for a list of available resources to assist you.
-
-## A Note About Add-ons
-We don't support add-ons here, even though some of Skript developers have also
-developed their own add-ons.
 
 ## Compiling
 Skript uses Gradle for compilation. Use your command prompt of preference and
@@ -113,71 +107,9 @@ Please review our [contribution guidelines](https://github.com/SkriptLang/Skript
 In addition to that, if you are contributing Java code, check our
 [coding conventions](https://github.com/SkriptLang/Skript/blob/master/code-conventions.md).
 
-## Maven Repository
-If you use Skript as (soft) dependency for your plugin, and use maven or Gradle,
-this is for you.
-
-First, you need to add the Maven repository at the **END** of all your repositories. Skript is not available in Maven Central.
-```gradle
-repositories {
-    maven {
-        url 'https://repo.skriptlang.org/releases'
-    }
-}
-```
-
-Or, if you use Maven:
-```maven
-<repositories>
-    <repository>
-        <id>skript-releases</id>
-        <name>Skript Repository</name>
-        <url>https://repo.skriptlang.org/releases</url>
-    </repository>
-</repositories>
-```
-
-For versions of Skript after dev37 you might need to add the paper-api repository to prevent build issues.
-
-```gradle
-maven {
-    url 'https://repo.destroystokyo.com/repository/maven-public/'
-}
-```
-
-Or, if you use Maven:
-```maven
-<repository>
-    <id>destroystokyo-repo</id>
-    <url>https://repo.destroystokyo.com/content/repositories/snapshots/</url>
-</repository>
-```
-
-Then you will also need to add Skript as a dependency.
-```gradle
-dependencies {
-    implementation 'com.github.SkriptLang:Skript:[versionTag]'
-}
-```
-
-An example of the version tag would be ```dev37c```.
-
-> Note: If Gradle isn't able to resolve Skript's dependencies, just [disable the resolution of transitive dependencies](https://docs.gradle.org/current/userguide/resolution_rules.html#sec:disabling_resolution_transitive_dependencies) for Skript in your project.
-
-Or, if you use Maven:
-```
-<dependency>
-    <groupId>com.github.SkriptLang</groupId>
-    <artifactId>Skript</artifactId>
-    <version>[versionTag]</version>
-    <scope>provided</scope>
-</dependency>
-```
-
 ## Relevant Links
 * [skUnity forums](https://forums.skunity.com)
-* [skUnity addon releases](https://forums.skunity.com/forums/addon-releases)
-* [skUnity Discord invite](https://discord.gg/0l3WlzBPKX7WNjkf)
+* [Add-on releases at skUnity](https://forums.skunity.com/forums/addon-releases)
 * [Skript Chat Discord invite](https://discord.gg/0lx4QhQvwelCZbEX)
 * [Skript Hub](https://skripthub.net)
 * [Original Skript at Bukkit](https://dev.bukkit.org/bukkit-plugins/skript) (inactive)
