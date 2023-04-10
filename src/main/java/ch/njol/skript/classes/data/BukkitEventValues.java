@@ -77,38 +77,14 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
-import org.bukkit.event.entity.AreaEffectCloudApplyEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
-import org.bukkit.event.entity.EntityChangeBlockEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityEvent;
-import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.entity.EntityTameEvent;
-import org.bukkit.event.entity.FireworkExplodeEvent;
-import org.bukkit.event.entity.HorseJumpEvent;
-import org.bukkit.event.entity.ItemDespawnEvent;
-import org.bukkit.event.entity.ItemMergeEvent;
-import org.bukkit.event.entity.ItemSpawnEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.CraftItemEvent;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.inventory.InventoryPickupItemEvent;
-import org.bukkit.event.inventory.PrepareAnvilEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.event.server.ServerCommandEvent;
@@ -469,6 +445,15 @@ public final class BukkitEventValues {
 				return null;
 			}
 		}, 0);
+		// EntityInteractEvent
+		EventValues.registerEventValue(EntityInteractEvent.class, Block.class, new Getter<Block, EntityInteractEvent>() {
+			@Override
+			@Nullable
+			public Block get(final EntityInteractEvent e) {
+				return e.getBlock();
+			}
+		}, 0);
+
 		// EntityDeathEvent
 		EventValues.registerEventValue(EntityDeathEvent.class, ItemStack[].class, new Getter<ItemStack[], EntityDeathEvent>() {
 			@Override
@@ -1575,5 +1560,24 @@ public final class BukkitEventValues {
 				return event.getItem();
 			}
 		}, EventValues.TIME_NOW);
+
+		EventValues.registerEventValue(InventoryDragEvent.class, ItemStack.class, new Getter<>() {
+			@Override
+			public ItemStack get(InventoryDragEvent event) {
+				return event.getOldCursor();
+			}
+		}, EventValues.TIME_NOW);
+		EventValues.registerEventValue(InventoryDragEvent.class, Inventory.class, new Getter<>() {
+				@Override
+				public Inventory get(InventoryDragEvent event) {
+					return event.getInventory();
+				}
+			}, EventValues.TIME_NOW);
+		EventValues.registerEventValue(InventoryDragEvent.class, Player.class, new Getter<>() {
+				@Override
+				public Player get(InventoryDragEvent event) {
+					return (Player) event.getWhoClicked();
+				}
+			}, EventValues.TIME_NOW);
 	}
 }
