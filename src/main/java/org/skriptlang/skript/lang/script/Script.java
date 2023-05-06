@@ -199,4 +199,8 @@ public final class Script {
 		);
 	}
 
+	@Override
+	public String toString() {
+		return config.getFileName();
+	}
 }
