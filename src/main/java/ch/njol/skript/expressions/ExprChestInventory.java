@@ -27,8 +27,10 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.util.SimpleExpression;
+import ch.njol.skript.util.chat.ChatMessages;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryType;
@@ -44,29 +46,29 @@ public class ExprChestInventory extends SimpleExpression<Inventory> {
 
 	static {
 		Skript.registerExpression(ExprChestInventory.class, Inventory.class, ExpressionType.COMBINED,
-			"[a [new]] chest inventory (named|with name) %string% [with %-number% row[s]]",
-			"[a [new]] chest inventory with %number% row[s] [(named|with name) %-string%]");
+			"[a [new]] chest inventory (named|with name) %component% [with %-number% row[s]]",
+			"[a [new]] chest inventory with %number% row[s] [(named|with name) %-component%]");
 	}
 
-	private static final String DEFAULT_CHEST_TITLE = InventoryType.CHEST.getDefaultTitle();
+	private static final Component DEFAULT_CHEST_TITLE = InventoryType.CHEST.defaultTitle();
 	private static final int DEFAULT_CHEST_ROWS = InventoryType.CHEST.getDefaultSize() / 9;
 
 	@Nullable
 	private Expression<Number> rows;
 	@Nullable
-	private Expression<String> name;
+	private Expression<Component> name;
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
-		name = (Expression<String>) exprs[matchedPattern];
+		name = (Expression<Component>) exprs[matchedPattern];
 		rows = (Expression<Number>) exprs[matchedPattern ^ 1];
 		return true;
 	}
 
 	@Override
 	protected Inventory[] get(Event e) {
-		String name = this.name != null ? this.name.getSingle(e) : DEFAULT_CHEST_TITLE;
+		Component name = this.name != null ? this.name.getSingle(e) : DEFAULT_CHEST_TITLE;
 		Number rows = this.rows != null ? this.rows.getSingle(e) : DEFAULT_CHEST_ROWS;
 
 		rows = rows == null ? DEFAULT_CHEST_ROWS : rows;

@@ -24,6 +24,8 @@ import ch.njol.skript.aliases.Aliases;
 import ch.njol.skript.aliases.ItemData;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.classes.ClassInfo;
+import ch.njol.skript.util.chat.ChatMessages;
+import net.kyori.adventure.text.Component;
 import org.skriptlang.skript.lang.comparator.Comparator;
 import ch.njol.skript.entity.BoatChestData;
 import ch.njol.skript.entity.BoatData;
@@ -64,6 +66,9 @@ import org.bukkit.inventory.ItemStack;
 import org.skriptlang.skript.lang.comparator.Relation;
 
 import java.util.Objects;
+
+import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
+import static ch.njol.skript.util.chat.ChatMessages.plain;
 
 @SuppressWarnings({"rawtypes"})
 public class DefaultComparators {
@@ -387,6 +392,12 @@ public class DefaultComparators {
 			public boolean supportsOrdering() {
 				return false;
 			}
+		});
+
+		// Component - String
+		Comparators.registerComparator(Component.class, String.class, (component, string) -> {
+			String stringComponent = ChatMessages.stripStyles(string);
+			return Relation.get(plain(component).equals(stringComponent));
 		});
 		
 		// World - String

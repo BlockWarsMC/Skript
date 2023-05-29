@@ -36,6 +36,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import ch.njol.skript.util.chat.BungeeConverter;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -572,6 +574,12 @@ public abstract class Utils {
 	 * @return message with localised chat styles converted to Minecraft's format
 	 */
 	public static String replaceChatStyles(final String message) {
+		if (message.isEmpty())
+			return message;
+		return ChatColor.translateAlternateColorCodes('&', "" + message);
+	}
+
+	public static String legacyChatStyles(final String message) {
 		if (message.isEmpty())
 			return message;
 		String m = StringUtils.replaceAll(Matcher.quoteReplacement("" + message.replace("<<none>>", "")), stylePattern, new Callback<String, Matcher>() {

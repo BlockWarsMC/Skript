@@ -35,6 +35,7 @@ import ch.njol.skript.util.chat.BungeeConverter;
 import ch.njol.skript.util.chat.ChatMessages;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -55,22 +56,18 @@ import java.util.List;
 public class EffBroadcast extends Effect {
 
 	static {
-		Skript.registerEffect(EffBroadcast.class, "broadcast %objects% [(to|in) %-worlds%]");
+		Skript.registerEffect(EffBroadcast.class, "broadcast %components% [(to|in) %-worlds%]");
 	}
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
-	private Expression<?> messageExpr;
-	@SuppressWarnings("NotNullFieldNotInitialized")
-	private Expression<?>[] messages;
+	private Expression<Component> messageExpr;
 	@Nullable
 	private Expression<World> worlds;
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
-		messageExpr = LiteralUtils.defendExpression(exprs[0]);
-		messages = messageExpr instanceof ExpressionList ?
-			((ExpressionList<?>) messageExpr).getExpressions() : new Expression[] {messageExpr};
+		messageExpr = (Expression<Component>) exprs[0];
 		worlds = (Expression<World>) exprs[1];
 		return LiteralUtils.canInitSafely(messageExpr);
 	}
@@ -87,29 +84,9 @@ public class EffBroadcast extends Effect {
 				receivers.addAll(world.getPlayers());
 		}
 
-		for (Expression<?> message : getMessages()) {
-			if (message instanceof VariableString) {
-				BaseComponent[] components = BungeeConverter.convert(((VariableString) message).getMessageComponents(e));
-				receivers.forEach(receiver -> receiver.spigot().sendMessage(components));
-			} else if (message instanceof ExprColoured && ((ExprColoured) message).isUnsafeFormat()) { // Manually marked as trusted
-				for (Object realMessage : message.getArray(e)) {
-					BaseComponent[] components = BungeeConverter.convert(ChatMessages.parse((String) realMessage));
-					receivers.forEach(receiver -> receiver.spigot().sendMessage(components));
-				}
-			} else {
-				for (Object messageObject : message.getArray(e)) {
-					String realMessage = messageObject instanceof String ? (String) messageObject : Classes.toString(messageObject);
-					receivers.forEach(receiver -> receiver.sendMessage(realMessage));
-				}
-			}
+		for (Component message : messageExpr.getArray(e)) {
+			receivers.forEach(receiver -> receiver.sendMessage(message));
 		}
-	}
-
-	private Expression<?>[] getMessages() {
-		if (messageExpr instanceof ExpressionList && !messageExpr.getAnd()) {
-			return new Expression[] {CollectionUtils.getRandom(messages)};
-		}
-		return messages;
 	}
 
 	@Override

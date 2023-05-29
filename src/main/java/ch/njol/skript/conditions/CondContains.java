@@ -21,6 +21,8 @@ package ch.njol.skript.conditions;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.aliases.ItemType;
+import ch.njol.skript.util.chat.ChatMessages;
+import net.kyori.adventure.text.Component;
 import org.skriptlang.skript.lang.comparator.Relation;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
@@ -40,6 +42,9 @@ import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static ch.njol.skript.util.chat.ChatMessages.*;
 
 @Name("Contains")
 @Description("Checks whether an inventory contains an item, a text contains another piece of text, " +
@@ -54,8 +59,10 @@ public class CondContains extends Condition {
 		Skript.registerCondition(CondContains.class,
 			"%inventories% (has|have) %itemtypes% [in [(the[ir]|his|her|its)] inventory]",
 			"%inventories% (doesn't|does not|do not|don't) have %itemtypes% [in [(the[ir]|his|her|its)] inventory]",
-			"%inventories/strings/objects% contain[(1¦s)] %itemtypes/strings/objects%",
-			"%inventories/strings/objects% (doesn't|does not|do not|don't) contain %itemtypes/strings/objects%"
+			"%inventories/components/strings/objects% contain[(1¦s)] %itemtypes/components/strings/objects%",
+			"%inventories/components/strings/objects% (doesn't|does not|do not|don't) contain %itemtypes/components/strings/objects%",
+			"raw %strings% contain[(1¦s)] %strings%",
+			"raw %strings% (doesn't|does not|do not|don't) contain %strings%"
 		);
 	}
 
@@ -63,7 +70,7 @@ public class CondContains extends Condition {
 	 * The type of check to perform
 	 */
 	private enum CheckType {
-		STRING, INVENTORY, OBJECTS, UNKNOWN
+		STRING, INVENTORY, OBJECTS, UNKNOWN, RAW_STRING
 	}
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
@@ -82,7 +89,9 @@ public class CondContains extends Condition {
 
 		explicitSingle = matchedPattern == 2 && parseResult.mark != 1 || containers.isSingle();
 
-		if (matchedPattern <= 1) {
+		if (matchedPattern >= 4) {
+			checkType = CheckType.RAW_STRING;
+		} else if (matchedPattern <= 1) {
 			checkType = CheckType.INVENTORY;
 		} else {
 			checkType = CheckType.UNKNOWN;
@@ -103,57 +112,70 @@ public class CondContains extends Condition {
 
 		// Change checkType according to values
 		if (checkType == CheckType.UNKNOWN) {
-			if (Arrays.stream(containerValues)
-				.allMatch(Inventory.class::isInstance)) {
+			if (Arrays.stream(containerValues).allMatch(Inventory.class::isInstance)) {
 				checkType = CheckType.INVENTORY;
-			} else if (explicitSingle
-				&& Arrays.stream(containerValues)
-				.allMatch(String.class::isInstance)) {
+			} else if (explicitSingle && Arrays.stream(containerValues).allMatch(s -> s instanceof String || s instanceof Component)) {
 				checkType = CheckType.STRING;
 			} else {
 				checkType = CheckType.OBJECTS;
 			}
 		}
 
-		if (checkType == CheckType.INVENTORY) {
-			return SimpleExpression.check(containerValues, o -> {
-				Inventory inventory = (Inventory) o;
-
-				return items.check(e, o1 -> {
-					if (o1 instanceof ItemType)
-						return ((ItemType) o1).isContainedIn(inventory);
-					else if (o1 instanceof ItemStack)
-						return inventory.containsAtLeast((ItemStack) o1, ((ItemStack) o1).getAmount());
-					else if (o1 instanceof Inventory)
-						return Objects.equals(inventory, o1);
-					else
-						return false;
-				});
-			}, isNegated(), containers.getAnd());
-		} else if (checkType == CheckType.STRING) {
+		if (checkType == CheckType.RAW_STRING) {
 			boolean caseSensitive = SkriptConfig.caseSensitive.value();
 
 			return SimpleExpression.check(containerValues, o -> {
 				String string = (String) o;
 
 				return items.check(e, o1 -> {
-					if (o1 instanceof String) {
-						return StringUtils.contains(string, (String) o1, caseSensitive);
+					if (o1 instanceof String s1) {
+						return StringUtils.contains(string, s1, caseSensitive);
 					} else {
 						return false;
 					}
 				});
 			}, isNegated(), containers.getAnd());
-		} else {
-			assert checkType == CheckType.OBJECTS;
+		} else if (checkType == CheckType.INVENTORY) {
+				return SimpleExpression.check(containerValues, o -> {
+					Inventory inventory = (Inventory) o;
 
-			return items.check(e, o1 -> {
-				for (Object o2 : containerValues) {
-					if (Comparators.compare(o1, o2) == Relation.EQUAL)
-						return true;
-				}
-				return false;
-			}, isNegated());
+					return items.check(e, o1 -> {
+						if (o1 instanceof ItemType)
+							return ((ItemType) o1).isContainedIn(inventory);
+						else if (o1 instanceof ItemStack)
+							return inventory.containsAtLeast((ItemStack) o1, ((ItemStack) o1).getAmount());
+						else if (o1 instanceof Inventory)
+							return Objects.equals(inventory, o1);
+						else
+							return false;
+					});
+				}, isNegated(), containers.getAnd());
+		} else if (checkType == CheckType.STRING) {
+				boolean caseSensitive = SkriptConfig.caseSensitive.value();
+
+				return SimpleExpression.check(containerValues, o -> {
+					String string = (String) o;
+
+					return items.check(e, o1 -> {
+						if (o1 instanceof String s1) {
+							return StringUtils.contains(string, ChatMessages.stripStyles(s1), caseSensitive);
+						} else if (o1 instanceof Component c1) {
+							return StringUtils.contains(string, plain(c1), caseSensitive);
+						} else {
+							return false;
+						}
+					});
+				}, isNegated(), containers.getAnd());
+		} else {
+				assert checkType == CheckType.OBJECTS;
+
+				return items.check(e, o1 -> {
+					for (Object o2 : containerValues) {
+						if (Comparators.compare(o1, o2) == Relation.EQUAL)
+							return true;
+					}
+					return false;
+				}, isNegated());
 		}
 	}
 	

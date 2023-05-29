@@ -18,6 +18,7 @@
  */
 package ch.njol.skript.effects;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
@@ -43,11 +44,11 @@ import net.md_5.bungee.api.chat.BaseComponent;
 public class EffActionBar extends Effect {
 
 	static {
-		Skript.registerEffect(EffActionBar.class, "send [the] action[ ]bar [with text] %string% to %players%");
+		Skript.registerEffect(EffActionBar.class, "send [the] action[ ]bar [with text] %component% to %players%");
 	}
 
 	@SuppressWarnings("null")
-	private Expression<String> message;
+	private Expression<Component> message;
 
 	@SuppressWarnings("null")
 	private Expression<Player> recipients;
@@ -55,7 +56,7 @@ public class EffActionBar extends Effect {
 	@SuppressWarnings({"unchecked", "null"})
 	@Override
 	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final SkriptParser.ParseResult parser) {
-		message = (Expression<String>) exprs[0];
+		message = (Expression<Component>) exprs[0];
 		recipients = (Expression<Player>) exprs[1];
 		return true;
 	}
@@ -63,11 +64,10 @@ public class EffActionBar extends Effect {
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void execute(final Event e) {
-		String msg = message.getSingle(e);
+		Component msg = message.getSingle(e);
 		assert msg != null;
-		BaseComponent[] components = BungeeConverter.convert(ChatMessages.parseToArray(msg));
 		for (Player player : recipients.getArray(e))
-			player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
+			player.sendActionBar(msg);
 	}
 
 	@Override
