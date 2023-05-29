@@ -27,11 +27,15 @@ import ch.njol.skript.expressions.base.PropertyExpression;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
-import ch.njol.skript.util.Utils;
 import ch.njol.skript.util.chat.ChatMessages;
 import ch.njol.util.Kleenean;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
+
+import static net.kyori.adventure.text.Component.text;
 
 @Name("Colored / Uncolored")
 @Description({"Parses &lt;color&gt;s and, optionally, chat styles in a message or removes",
@@ -47,18 +51,18 @@ import org.eclipse.jdt.annotation.Nullable;
 		"	trigger:",
 		"		message formatted text-argument # Safe, because we're sending to whoever used this command"})
 @Since("2.0")
-public class ExprColoured extends PropertyExpression<String, String> {
+public class ExprColoured extends PropertyExpression<Component, Component> {
 	static {
-		Skript.registerExpression(ExprColoured.class, String.class, ExpressionType.COMBINED,
-				"(colo[u]r-|colo[u]red )%strings%",
-				"(format-|formatted )%strings%",
-				"(un|non)[-](colo[u]r-|colo[u]red |format-|formatted )%strings%");
+		Skript.registerExpression(ExprColoured.class, Component.class, ExpressionType.COMBINED,
+				"(colo[u]r-|colo[u]red )%components%",
+				"(format-|formatted )%components%",
+				"(un|non)[-](colo[u]r-|colo[u]red |format-|formatted )%components%");
 	}
 	
 	/**
 	 * If colors should be parsed.
 	 */
-	boolean color;
+	boolean shouldColor;
 	
 	/**
 	 * If all styles should be parsed whenever possible.
@@ -68,25 +72,25 @@ public class ExprColoured extends PropertyExpression<String, String> {
 	@SuppressWarnings({"unchecked", "null"})
 	@Override
 	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final ParseResult parseResult) {
-		setExpr((Expression<? extends String>) exprs[0]);
-		color = matchedPattern <= 1; // colored and formatted
+		setExpr((Expression<? extends Component>) exprs[0]);
+		shouldColor = matchedPattern <= 1; // colored and formatted
 		format = matchedPattern == 1;
 		return true;
 	}
 	
 	@Override
-	protected String[] get(final Event e, final String[] source) {
-		return get(source, s -> color ? Utils.replaceChatStyles(s) : "" + ChatMessages.stripStyles(s));
+	protected Component[] get(final Event e, final Component[] source) {
+		return get(source, s -> shouldColor ? s : text(PlainTextComponentSerializer.plainText().serialize(s)));
 	}
 	
 	@Override
-	public Class<? extends String> getReturnType() {
-		return String.class;
+	public Class<? extends Component> getReturnType() {
+		return Component.class;
 	}
 	
 	@Override
 	public String toString(final @Nullable Event e, final boolean debug) {
-		return (color ? "" : "un") + "colored " + getExpr().toString(e, debug);
+		return (shouldColor ? "" : "un") + "colored " + getExpr().toString(e, debug);
 	}
 	
 	/**

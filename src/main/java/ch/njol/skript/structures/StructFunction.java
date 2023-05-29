@@ -64,7 +64,7 @@ public class StructFunction extends Structure {
 	}
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
-	private Signature<?> signature;
+	public Signature<?> signature;
 	private boolean local;
 
 	@Override

@@ -25,6 +25,7 @@ import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.skript.util.chat.MessageComponent;
 import ch.njol.util.coll.CollectionUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -65,110 +66,41 @@ import net.md_5.bungee.api.chat.BaseComponent;
 @Since("1.0, 2.2-dev26 (advanced features), 2.5.2 (optional sender), 2.6 (sending objects)")
 public class EffMessage extends Effect {
 	
-	private static final boolean SUPPORTS_SENDER = Skript.classExists("org.bukkit.command.CommandSender$Spigot") &&
-		Skript.methodExists(CommandSender.Spigot.class, "sendMessage", UUID.class, BaseComponent.class);
-	
 	static {
-		if (SUPPORTS_SENDER)
-			Skript.registerEffect(EffMessage.class, "(message|send [message[s]]) %objects% [to %commandsenders%] [from %-player%]");
-		else
-			Skript.registerEffect(EffMessage.class, "(message|send [message[s]]) %objects% [to %commandsenders%]");
+		Skript.registerEffect(EffMessage.class, "(message|send [message[s]]) %component% [to %commandsenders%]");
 	}
-
-	@SuppressWarnings("NotNullFieldNotInitialized")
-	private Expression<?>[] messages;
 
 	/**
 	 * Used for {@link EffMessage#toString(Event, boolean)}
 	 */
 	@SuppressWarnings("NotNullFieldNotInitialized")
-	private Expression<?> messageExpr;
+	private Expression<Component> messageExpr;
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
 	private Expression<CommandSender> recipients;
 	
-	@Nullable
-	private Expression<Player> sender;
-	
 	@SuppressWarnings({"unchecked", "null"})
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parser) {
-		messageExpr = LiteralUtils.defendExpression(exprs[0]);
-
-		messages = messageExpr instanceof ExpressionList ?
-			((ExpressionList<?>) messageExpr).getExpressions() : new Expression[] {messageExpr};
+		messageExpr = (Expression<Component>) exprs[0];
 		recipients = (Expression<CommandSender>) exprs[1];
-		if (SUPPORTS_SENDER)
-			sender = (Expression<Player>) exprs[2];
 		return LiteralUtils.canInitSafely(messageExpr);
 	}
 
 	@Override
 	protected void execute(Event e) {
-		Player sender = this.sender != null ? this.sender.getSingle(e) : null;
-
 		CommandSender[] commandSenders = recipients.getArray(e);
 
-		for (Expression<?> message : getMessages()) {
-
-			Object[] messageArray = null;
-			List<MessageComponent> messageComponents = null;
-
+		for (Component message : messageExpr.getArray(e)) {
 			for (CommandSender receiver : commandSenders) {
-				if (receiver instanceof Player && message instanceof VariableString) {
-					if (messageComponents == null)
-						messageComponents = ((VariableString) message).getMessageComponents(e);
-				} else {
-					if (messageArray == null)
-						messageArray = message.getArray(e);
-				}
-
-				if (receiver instanceof Player) { // Can use JSON formatting
-					if (message instanceof VariableString) { // Process formatting that is safe
-						sendMessage((Player) receiver, sender,
-							BungeeConverter.convert(messageComponents)
-						);
-					} else if (message instanceof ExprColoured && ((ExprColoured) message).isUnsafeFormat()) { // Manually marked as trusted
-						for (Object object : messageArray) {
-							sendMessage((Player) receiver, sender, BungeeConverter.convert(ChatMessages.parse((String) object)));
-						}
-					} else { // It is just a string, no idea if it comes from a trusted source -> don't parse anything
-						for (Object object : messageArray) {
-							List<MessageComponent> components = ChatMessages.fromParsedString(toString(object));
-							sendMessage((Player) receiver, sender, BungeeConverter.convert(components));
-						}
-					}
-				} else { // Not a player, send plain text with legacy formatting
-					for (Object object : messageArray) {
-						receiver.sendMessage(toString(object));
-					}
-				}
+				receiver.sendMessage(message);
 			}
 		}
-	}
-	
-	private void sendMessage(Player receiver, @Nullable Player sender, BaseComponent... components) {
-		if (SUPPORTS_SENDER && sender != null)
-			receiver.spigot().sendMessage(sender.getUniqueId(), components);
-		else
-			receiver.spigot().sendMessage(components);
-	}
-
-	private Expression<?>[] getMessages() {
-		if (messageExpr instanceof ExpressionList && !messageExpr.getAnd()) {
-			return new Expression[] {CollectionUtils.getRandom(messages)};
-		}
-		return messages;
-	}
-
-	private String toString(Object object) {
-		return object instanceof String ? (String) object : Classes.toString(object);
 	}
 
 	@Override
 	public String toString(@Nullable Event e, boolean debug) {
-		return "send " + messageExpr.toString(e, debug) + " to " + recipients.toString(e, debug) +
-			(sender != null ? " from " + sender.toString(e, debug) : "");
+		return "send " + messageExpr.toString(e, debug) + " to " + recipients.toString(e, debug);
 	}
 	
 }

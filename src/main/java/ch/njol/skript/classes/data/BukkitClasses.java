@@ -18,6 +18,7 @@
  */
 package ch.njol.skript.classes.data;
 
+import java.io.NotSerializableException;
 import java.io.StreamCorruptedException;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import ch.njol.skript.util.chat.ChatMessages;
 import ch.njol.util.coll.iterator.ArrayIterator;
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.classes.ConfigurationSerializer;
@@ -40,6 +42,9 @@ import ch.njol.skript.util.EnchantmentType;
 import ch.njol.skript.util.PotionEffectUtils;
 import ch.njol.skript.util.StringMode;
 import io.papermc.paper.world.MoonPhase;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Difficulty;
@@ -1486,6 +1491,52 @@ public class BukkitClasses {
 				.name("World Environment")
 				.description("Represents the environment of a world.")
 				.since("2.7"));
+
+		Classes.registerClass(new ClassInfo<Component>(Component.class, "component")
+			.user("components?")
+			.name("Component")
+			.description("Kyori Components that support many fun things that spigot's does not :3")
+			.parser(new Parser<>() {
+				@Override
+				public Component parse(String s, ParseContext context) {
+					return ChatMessages.parseComponent(s);
+				}
+				@Override
+				public boolean canParse(final ParseContext context) {
+					return context == ParseContext.SCRIPT;
+				}
+				@Override
+				public String toString(Component o, int flags) {
+					return LegacyComponentSerializer.legacySection().serialize(o);
+				}
+				@Override
+				public String toVariableNameString(Component o) {
+					return LegacyComponentSerializer.legacySection().serialize(o);
+				}
+			}).serializer(new Serializer<Component>() {
+				@Override
+				public Fields serialize(Component o) throws NotSerializableException {
+					final Fields f = new Fields();
+					f.putObject("json", GsonComponentSerializer.gson().serialize(o));
+					return f;
+				}
+				@Override
+				public void deserialize(Component o, Fields f) { assert false; }
+				@Override
+				public Component deserialize(Fields f) throws StreamCorruptedException {
+					return GsonComponentSerializer.gson().deserialize(f.getPrimitive("json", String.class));
+				}
+
+				@Override
+				public boolean mustSyncDeserialization() {
+					return false;
+				}
+				@Override
+				protected boolean canBeInstantiated() {
+					return false;
+				}
+			})
+		);
 
 		if (Skript.classExists("io.papermc.paper.world.MoonPhase")) {
 			Classes.registerClass(new EnumClassInfo<>(MoonPhase.class, "moonphase", "moon phases")

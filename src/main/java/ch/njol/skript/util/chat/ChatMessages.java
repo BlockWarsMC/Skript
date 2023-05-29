@@ -23,11 +23,16 @@ import ch.njol.skript.SkriptAddon;
 import ch.njol.skript.localization.Language;
 import ch.njol.skript.localization.LanguageChangeListener;
 import ch.njol.skript.util.Utils;
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import org.eclipse.jdt.annotation.Nullable;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -37,6 +42,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -491,13 +497,6 @@ public class ChatMessages {
 		return components;
 	}
 	
-	public static String toJson(String msg) {
-		ComponentList componentList = new ComponentList(parse(msg));
-		String json = gson.toJson(componentList);
-		assert json != null;
-		return json;
-	}
-	
 	public static String toJson(List<MessageComponent> components) {
 		ComponentList componentList = new ComponentList(components);
 		String json = gson.toJson(componentList);
@@ -538,17 +537,6 @@ public class ChatMessages {
 			to.insertion = from.insertion;
 		if (to.hoverEvent == null)
 			to.hoverEvent = from.hoverEvent;
-	}
-
-	public static void shareStyles(MessageComponent[] components) {
-		MessageComponent previous = null;
-		for (MessageComponent c : components) {
-			if (previous != null) {
-				assert c != null;
-				copyStyles(previous, c);
-			}
-			previous = c;
-		}
 	}
 
 	/**
@@ -602,5 +590,43 @@ public class ChatMessages {
 		} while (!previous.equals(result));
 		
 		return result;
+	}
+
+	private static Map<String, String> colorCodeTranslators = Map.ofEntries(
+		Map.entry("4", "dark_red"),
+		Map.entry("c", "red"),
+		Map.entry("6", "gold"),
+		Map.entry("e", "yellow"),
+		Map.entry("2", "dark_green"),
+		Map.entry("a", "green"),
+		Map.entry("b", "aqua"),
+		Map.entry("3", "dark_aqua"),
+		Map.entry("1", "dark_blue"),
+		Map.entry("9", "blue"),
+		Map.entry("d", "light_purple"),
+		Map.entry("5", "dark_purple"),
+		Map.entry("f", "white"),
+		Map.entry("7", "gray"),
+		Map.entry("8", "dark_gray"),
+		Map.entry("0", "black"),
+		Map.entry("l", "bold"),
+		Map.entry("r", "reset"),
+		Map.entry("k", "obf"),
+		Map.entry("s", "strikethrough"),
+		Map.entry("n", "u"),
+		Map.entry("o", "italic")
+	);
+	private static Pattern colorCodePattern = Pattern.compile("[&§]([a-z1-9])");
+
+	public static Component parseComponent(String string) {
+		StringBuilder builder = new StringBuilder(string);
+		Matcher matcher = colorCodePattern.matcher(builder);
+		String s = matcher.replaceAll(result -> {
+			String code = result.group(1);
+			String tag = colorCodeTranslators.get(code);
+			if (tag == null) return code;
+			return "<" + tag + ">";
+		});
+		return MiniMessage.miniMessage().deserialize(s);
 	}
 }

@@ -574,32 +574,7 @@ public abstract class Utils {
 	public static String replaceChatStyles(final String message) {
 		if (message.isEmpty())
 			return message;
-		String m = StringUtils.replaceAll(Matcher.quoteReplacement("" + message.replace("<<none>>", "")), stylePattern, new Callback<String, Matcher>() {
-			@Override
-			public String run(final Matcher m) {
-				SkriptColor color = SkriptColor.fromName("" + m.group(1));
-				if (color != null)
-					return color.getFormattedChat();
-				final String tag = m.group(1).toLowerCase(Locale.ENGLISH);
-				final String f = chat.get(tag);
-				if (f != null)
-					return f;
-				if (HEX_SUPPORTED && tag.startsWith("#")) { // Check for parsing hex colors
-					ChatColor chatColor = parseHexColor(tag);
-					if (chatColor != null)
-						return chatColor.toString();
-				}
-				return "" + m.group();
-			}
-		});
-		assert m != null;
-		// Restore user input post-sanitization
-		// Sometimes, the message has already been restored
-		if (!message.equals(m)) {
-			m = m.replace("\\$", "$").replace("\\\\", "\\");
-		}
-		m = ChatColor.translateAlternateColorCodes('&', "" + m);
-		return "" + m;
+		return message;
 	}
 	
 	/**
