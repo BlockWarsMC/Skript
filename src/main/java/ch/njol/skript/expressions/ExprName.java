@@ -60,6 +60,8 @@ import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import net.md_5.bungee.api.ChatColor;
 
+import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
+
 @Name("Name / Display Name / Tab List Name")
 @Description({
 	"Represents the Minecraft account, display or tab list name of a player, or the custom name of an item, entity, block, inventory, gamerule or world.",
@@ -214,7 +216,10 @@ public class ExprName extends SimplePropertyExpression<Object, Component> {
 
 	@Override
 	public void change(Event e, @Nullable Object[] delta, ChangeMode mode) {
-		Component name = delta != null ? (Component) delta[0] : null;
+		Component name = null;
+		if (delta[0] instanceof Component c) name = (Component)delta[0];
+		else if (delta[0] instanceof String s) name = parseComponent(s);
+
 		for (Object o : getExpr().getArray(e)) {
 			if (o instanceof Player) {
 				switch (mark) {

@@ -53,6 +53,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
@@ -1304,6 +1305,16 @@ public final class Skript extends JavaPlugin implements Listener {
 		final SkriptAddon addon = new SkriptAddon(p);
 		addons.put(p.getName(), addon);
 		return addon;
+	}
+
+	/**
+	 * Registers a new TagResolver to be used in Skript's MiniMessage Parser
+	 *
+	 * @param resolver The tag resolver
+	 */
+	public static void registerTagResolver(final TagResolver resolver) {
+		checkAcceptRegistrations();
+		ChatMessages.addTagResolver(resolver);
 	}
 	
 	@Nullable

@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
@@ -86,6 +87,10 @@ public class ChatMessages {
 	 * Instance of GSON we use for serialization.
 	 */
 	static final Gson gson;
+	private static final List<TagResolver> tagResolvers = new ArrayList<>();
+	public static void addTagResolver(TagResolver resolver) {
+		tagResolvers.add(resolver);
+	}
 	
 	/**
 	 * Registers language change listener for chat system.
@@ -628,7 +633,7 @@ public class ChatMessages {
 			if (tag == null) return code;
 			return "<" + tag + ">";
 		});
-		return MiniMessage.miniMessage().deserialize(s);
+		return MiniMessage.miniMessage().deserialize(s, tagResolvers.toArray(TagResolver[]::new));
 	}
 
 	public static String plain(Component component) {
