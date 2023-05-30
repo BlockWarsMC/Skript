@@ -21,6 +21,8 @@ package ch.njol.skript.conditions;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.aliases.ItemType;
+import ch.njol.skript.util.chat.ChatMessages;
+import net.kyori.adventure.text.Component;
 import org.skriptlang.skript.lang.comparator.Relation;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
@@ -40,6 +42,10 @@ import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
+import static ch.njol.skript.util.chat.ChatMessages.text;
 
 @Name("Contains")
 @Description("Checks whether an inventory contains an item, a text contains another piece of text, " +
@@ -54,8 +60,8 @@ public class CondContains extends Condition {
 		Skript.registerCondition(CondContains.class,
 			"%inventories% (has|have) %itemtypes% [in [(the[ir]|his|her|its)] inventory]",
 			"%inventories% (doesn't|does not|do not|don't) have %itemtypes% [in [(the[ir]|his|her|its)] inventory]",
-			"%inventories/strings/objects% contain[(1¦s)] %itemtypes/strings/objects%",
-			"%inventories/strings/objects% (doesn't|does not|do not|don't) contain %itemtypes/strings/objects%"
+			"%inventories/components/strings/objects% contain[(1¦s)] %itemtypes/components/strings/objects%",
+			"%inventories/components/strings/objects% (doesn't|does not|do not|don't) contain %itemtypes/components/strings/objects%"
 		);
 	}
 
@@ -63,7 +69,7 @@ public class CondContains extends Condition {
 	 * The type of check to perform
 	 */
 	private enum CheckType {
-		STRING, INVENTORY, OBJECTS, UNKNOWN
+		STRING, INVENTORY, OBJECTS, UNKNOWN, COMPONENT
 	}
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
@@ -103,13 +109,10 @@ public class CondContains extends Condition {
 
 		// Change checkType according to values
 		if (checkType == CheckType.UNKNOWN) {
-			if (Arrays.stream(containerValues)
-				.allMatch(Inventory.class::isInstance)) {
+			if (Arrays.stream(containerValues).allMatch(Inventory.class::isInstance)) {
 				checkType = CheckType.INVENTORY;
-			} else if (explicitSingle
-				&& Arrays.stream(containerValues)
-				.allMatch(String.class::isInstance)) {
-				checkType = CheckType.STRING;
+			} else if (Arrays.stream(containerValues).allMatch(o -> o instanceof Component || o instanceof String)) {
+				checkType = CheckType.COMPONENT;
 			} else {
 				checkType = CheckType.OBJECTS;
 			}
@@ -137,11 +140,28 @@ public class CondContains extends Condition {
 				String string = (String) o;
 
 				return items.check(e, o1 -> {
-					if (o1 instanceof String) {
-						return StringUtils.contains(string, (String) o1, caseSensitive);
+					if (o1 instanceof String s1) {
+						return StringUtils.contains(string, s1, caseSensitive);
 					} else {
 						return false;
 					}
+				});
+			}, isNegated(), containers.getAnd());
+		} else if (checkType == CheckType.COMPONENT) {
+			// forget everything i've ever said, this is the hackyest thing ever
+			// BlockWars depends on Legacy Color Codes for many things
+			// And MiniMessage / Components handle containing very differently than string w/ color codes
+			// So this needs to maintain the same behaviour as before otherwise... grrrr
+			return SimpleExpression.check(containerValues, o -> {
+				String string;
+				// grrrrrr
+				if (o instanceof String s) string = text(parseComponent(s));
+				else string = text((Component) o);
+
+				return items.check(e, o1 -> {
+					if (o1 instanceof Component c1) return string.contains(text(c1));
+					else if (o1 instanceof String s1) return string.contains(text(parseComponent(s1))); // i'm going to hell for this
+					else return false;
 				});
 			}, isNegated(), containers.getAnd());
 		} else {

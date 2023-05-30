@@ -29,6 +29,7 @@ import com.google.gson.GsonBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -628,5 +629,12 @@ public class ChatMessages {
 			return "<" + tag + ">";
 		});
 		return MiniMessage.miniMessage().deserialize(s);
+	}
+
+	public static String plain(Component component) {
+		return PlainTextComponentSerializer.plainText().serialize(component);
+	}
+	public static String text(Component component) {
+		return MiniMessage.miniMessage().serialize(component);
 	}
 }
