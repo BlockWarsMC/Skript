@@ -69,7 +69,7 @@ public class CondContains extends Condition {
 	 * The type of check to perform
 	 */
 	private enum CheckType {
-		STRING, INVENTORY, OBJECTS, UNKNOWN, COMPONENT
+		STRING, INVENTORY, OBJECTS, UNKNOWN
 	}
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
@@ -102,7 +102,10 @@ public class CondContains extends Condition {
 	public boolean check(Event e) {
 		CheckType checkType = this.checkType;
 
-		Object[] containerValues = containers.getAll(e);
+		Object[] containerValues = Arrays.stream(containers.getAll(e)).map(container -> {
+			if (container instanceof Component c) return text(c);
+			else return container;
+		}).toArray(Object[]::new);
 
 		if (containerValues.length == 0)
 			return isNegated();
@@ -111,8 +114,10 @@ public class CondContains extends Condition {
 		if (checkType == CheckType.UNKNOWN) {
 			if (Arrays.stream(containerValues).allMatch(Inventory.class::isInstance)) {
 				checkType = CheckType.INVENTORY;
-			} else if (Arrays.stream(containerValues).allMatch(o -> o instanceof Component || o instanceof String)) {
-				checkType = CheckType.COMPONENT;
+			} else if (explicitSingle
+				&& Arrays.stream(containerValues)
+				.allMatch(String.class::isInstance)) {
+				checkType = CheckType.STRING;
 			} else {
 				checkType = CheckType.OBJECTS;
 			}
@@ -142,29 +147,13 @@ public class CondContains extends Condition {
 				return items.check(e, o1 -> {
 					if (o1 instanceof String s1) {
 						return StringUtils.contains(string, s1, caseSensitive);
+					} else if (o1 instanceof Component c1) {
+						return StringUtils.contains(text(parseComponent(string)), text(c1), caseSensitive);
 					} else {
 						return false;
 					}
 				});
 			}, isNegated(), containers.getAnd());
-		} else if (checkType == CheckType.COMPONENT) {
-			// forget everything i've ever said, this is the hackyest thing ever
-			// BlockWars depends on Legacy Color Codes for many things
-			// And MiniMessage / Components handle containing very differently than string w/ color codes
-			// So this needs to maintain the same behaviour as before otherwise... grrrr
-
-			return items.check(e, o1 -> {
-				for (Object o : containerValues) {
-					String string;
-					// grrrrrr
-					if (o instanceof String s) string = text(parseComponent(s));
-					else string = text((Component) o);
-
-					if (o1 instanceof Component c1 && string.contains(text(c1))) return true;
-					else if (o1 instanceof String s1 && string.contains(text(parseComponent(s1)))) return true; // i'm going to hell for this
-				}
-				return false;
-			}, isNegated());
 		} else {
 			assert checkType == CheckType.OBJECTS;
 

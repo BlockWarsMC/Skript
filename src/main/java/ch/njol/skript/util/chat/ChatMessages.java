@@ -636,6 +636,10 @@ public class ChatMessages {
 		return MiniMessage.miniMessage().deserialize(s, tagResolvers.toArray(TagResolver[]::new));
 	}
 
+	public static Component[] parseComponents(String ...strings) {
+		return Arrays.stream(strings).map(ChatMessages::parseComponent).toArray(Component[]::new);
+	}
+
 	public static String plain(Component component) {
 		return PlainTextComponentSerializer.plainText().serialize(component);
 	}

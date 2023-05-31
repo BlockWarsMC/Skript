@@ -106,6 +106,8 @@ import ch.njol.skript.registrations.Classes;
 import ch.njol.util.StringUtils;
 import ch.njol.yggdrasil.Fields;
 
+import static ch.njol.skript.util.chat.ChatMessages.text;
+
 /**
  * @author Peter Güttinger
  */
@@ -1507,11 +1509,11 @@ public class BukkitClasses {
 				}
 				@Override
 				public String toString(Component o, int flags) {
-					return LegacyComponentSerializer.legacySection().serialize(o);
+					return text(o);
 				}
 				@Override
 				public String toVariableNameString(Component o) {
-					return LegacyComponentSerializer.legacySection().serialize(o);
+					return text(o);
 				}
 			}).serializer(new Serializer<Component>() {
 				@Override
