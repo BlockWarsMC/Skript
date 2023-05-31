@@ -67,6 +67,7 @@ import org.skriptlang.skript.lang.comparator.Relation;
 import java.util.Objects;
 
 import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
+import static ch.njol.skript.util.chat.ChatMessages.plain;
 
 @SuppressWarnings({"rawtypes"})
 public class DefaultComparators {
@@ -394,8 +395,8 @@ public class DefaultComparators {
 
 		// Component - String
 		Comparators.registerComparator(Component.class, String.class, (component, string) -> {
-			Component stringComponent = parseComponent(string);
-			return Relation.get(component.equals(stringComponent));
+			String stringComponent = plain(parseComponent(string));
+			return Relation.get(plain(component).equals(stringComponent));
 		});
 		
 		// World - String

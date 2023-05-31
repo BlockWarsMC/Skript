@@ -624,6 +624,7 @@ public class ChatMessages {
 		Map.entry("o", "italic")
 	);
 	private static final List<String> notReset = Arrays.asList("l", "r", "k", "m", "n", "o");
+	private static final String resetString = "<reset><!italic><!bold><!u><!st>";
 	private static final Pattern colorCodePattern = Pattern.compile("[&§]([a-z0-9])");
 
 	public static Component parseComponent(String string) {
@@ -632,10 +633,10 @@ public class ChatMessages {
 		String s = matcher.replaceAll(result -> {
 			String code = result.group(1);
 			if (code.equals("r")) {
-				return "<reset><!italic><!bold><!u><!st>";
+				return resetString;
 			}
 			String tag = "<" + colorCodeTranslators.get(code) + ">";
-			if (!notReset.contains(code)) tag = "<reset>" + tag;
+			if (!notReset.contains(code)) tag = resetString + tag;
 			return tag;
 		});
 		return MiniMessage.miniMessage().deserialize(s, tagResolvers.toArray(TagResolver[]::new));
