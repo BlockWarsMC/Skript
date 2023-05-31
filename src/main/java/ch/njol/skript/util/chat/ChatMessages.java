@@ -598,7 +598,7 @@ public class ChatMessages {
 		return result;
 	}
 
-	private static Map<String, String> colorCodeTranslators = Map.ofEntries(
+	private static final Map<String, String> colorCodeTranslators = Map.ofEntries(
 		Map.entry("4", "dark_red"),
 		Map.entry("c", "red"),
 		Map.entry("6", "gold"),
@@ -615,6 +615,7 @@ public class ChatMessages {
 		Map.entry("7", "gray"),
 		Map.entry("8", "dark_gray"),
 		Map.entry("0", "black"),
+
 		Map.entry("l", "bold"),
 		Map.entry("r", "reset"),
 		Map.entry("k", "obf"),
@@ -622,16 +623,20 @@ public class ChatMessages {
 		Map.entry("n", "u"),
 		Map.entry("o", "italic")
 	);
-	private static Pattern colorCodePattern = Pattern.compile("[&§]([a-z0-9])");
+	private static final List<String> notReset = Arrays.asList("l", "r", "k", "s", "n", "o");
+	private static final Pattern colorCodePattern = Pattern.compile("[&§]([a-z0-9])");
 
 	public static Component parseComponent(String string) {
-		StringBuilder builder = new StringBuilder(string);
+		StringBuilder builder = new StringBuilder("&r" + string);
 		Matcher matcher = colorCodePattern.matcher(builder);
 		String s = matcher.replaceAll(result -> {
 			String code = result.group(1);
-			String tag = colorCodeTranslators.get(code);
-			if (tag == null) return code;
-			return "<" + tag + ">";
+			if (code.equals("r")) {
+				return "<reset><!italic><!bold><!u><!st>";
+			}
+			String tag = "<" + colorCodeTranslators.get(code) + ">";
+			if (!notReset.contains(code)) tag = "<reset>" + tag;
+			return tag;
 		});
 		return MiniMessage.miniMessage().deserialize(s, tagResolvers.toArray(TagResolver[]::new));
 	}

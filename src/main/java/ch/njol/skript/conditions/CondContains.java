@@ -44,8 +44,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
-import static ch.njol.skript.util.chat.ChatMessages.text;
+import static ch.njol.skript.util.chat.ChatMessages.*;
 
 @Name("Contains")
 @Description("Checks whether an inventory contains an item, a text contains another piece of text, " +
@@ -103,7 +102,7 @@ public class CondContains extends Condition {
 		CheckType checkType = this.checkType;
 
 		Object[] containerValues = Arrays.stream(containers.getAll(e)).map(container -> {
-			if (container instanceof Component c) return text(c);
+			if (container instanceof Component c) return plain(c);
 			else return container;
 		}).toArray(Object[]::new);
 
@@ -146,9 +145,9 @@ public class CondContains extends Condition {
 
 				return items.check(e, o1 -> {
 					if (o1 instanceof String s1) {
-						return StringUtils.contains(string, s1, caseSensitive);
+						return StringUtils.contains(string, plain(parseComponent(s1)), caseSensitive);
 					} else if (o1 instanceof Component c1) {
-						return StringUtils.contains(text(parseComponent(string)), text(c1), caseSensitive);
+						return StringUtils.contains(string, plain(c1), caseSensitive);
 					} else {
 						return false;
 					}

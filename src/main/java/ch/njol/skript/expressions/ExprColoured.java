@@ -27,9 +27,12 @@ import ch.njol.skript.expressions.base.PropertyExpression;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
+import ch.njol.skript.util.Utils;
+import ch.njol.skript.util.chat.BungeeConverter;
 import ch.njol.skript.util.chat.ChatMessages;
 import ch.njol.util.Kleenean;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.event.Event;
@@ -51,9 +54,9 @@ import static net.kyori.adventure.text.Component.text;
 		"	trigger:",
 		"		message formatted text-argument # Safe, because we're sending to whoever used this command"})
 @Since("2.0")
-public class ExprColoured extends PropertyExpression<Component, Component> {
+public class ExprColoured extends PropertyExpression<Component, String> {
 	static {
-		Skript.registerExpression(ExprColoured.class, Component.class, ExpressionType.COMBINED,
+		Skript.registerExpression(ExprColoured.class, String.class, ExpressionType.COMBINED,
 				"(colo[u]r-|colo[u]red )%components%",
 				"(format-|formatted )%components%",
 				"(un|non)[-](colo[u]r-|colo[u]red |format-|formatted )%components%");
@@ -79,13 +82,16 @@ public class ExprColoured extends PropertyExpression<Component, Component> {
 	}
 	
 	@Override
-	protected Component[] get(final Event e, final Component[] source) {
-		return get(source, s -> shouldColor ? s : text(PlainTextComponentSerializer.plainText().serialize(s)));
+	protected String[] get(final Event e, final Component[] source) {
+		// i want to sleep
+		return get(source, s -> shouldColor ?
+			ChatMessages.text(s) :
+			ChatMessages.plain(s));
 	}
 	
 	@Override
-	public Class<? extends Component> getReturnType() {
-		return Component.class;
+	public Class<? extends String> getReturnType() {
+		return String.class;
 	}
 	
 	@Override

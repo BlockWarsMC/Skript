@@ -1509,7 +1509,7 @@ public class BukkitClasses {
 				}
 				@Override
 				public String toString(Component o, int flags) {
-					return text(o);
+					return LegacyComponentSerializer.legacySection().serialize(o);
 				}
 				@Override
 				public String toVariableNameString(Component o) {
