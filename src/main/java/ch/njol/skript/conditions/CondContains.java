@@ -152,18 +152,19 @@ public class CondContains extends Condition {
 			// BlockWars depends on Legacy Color Codes for many things
 			// And MiniMessage / Components handle containing very differently than string w/ color codes
 			// So this needs to maintain the same behaviour as before otherwise... grrrr
-			return SimpleExpression.check(containerValues, o -> {
-				String string;
-				// grrrrrr
-				if (o instanceof String s) string = text(parseComponent(s));
-				else string = text((Component) o);
 
-				return items.check(e, o1 -> {
-					if (o1 instanceof Component c1) return string.contains(text(c1));
-					else if (o1 instanceof String s1) return string.contains(text(parseComponent(s1))); // i'm going to hell for this
-					else return false;
-				});
-			}, isNegated(), containers.getAnd());
+			return items.check(e, o1 -> {
+				for (Object o : containerValues) {
+					String string;
+					// grrrrrr
+					if (o instanceof String s) string = text(parseComponent(s));
+					else string = text((Component) o);
+
+					if (o1 instanceof Component c1 && string.contains(text(c1))) return true;
+					else if (o1 instanceof String s1 && string.contains(text(parseComponent(s1)))) return true; // i'm going to hell for this
+				}
+				return false;
+			}, isNegated());
 		} else {
 			assert checkType == CheckType.OBJECTS;
 

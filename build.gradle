@@ -115,10 +115,11 @@ tasks.withType(ShadowJar) {
 
 publishing {
 	publications {
+		def hash = 'git rev-parse --short HEAD'.execute().text.trim()
 		maven(MavenPublication) {
 			groupId 'games.blockwars.skript'
-			artifactId 'Skript'
-			version project.version
+			artifactId 'skript'
+			version project.property('version') + '-blockwars-' + hash
 			artifact sourceJar
 			artifact tasks.jar
 		}

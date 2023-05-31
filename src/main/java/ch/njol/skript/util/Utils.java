@@ -574,7 +574,7 @@ public abstract class Utils {
 	public static String replaceChatStyles(final String message) {
 		if (message.isEmpty())
 			return message;
-		return message;
+		return ChatColor.translateAlternateColorCodes('&', "" + message);
 	}
 	
 	/**

@@ -622,7 +622,7 @@ public class ChatMessages {
 		Map.entry("n", "u"),
 		Map.entry("o", "italic")
 	);
-	private static Pattern colorCodePattern = Pattern.compile("[&§]([a-z1-9])");
+	private static Pattern colorCodePattern = Pattern.compile("[&§]([a-z0-9])");
 
 	public static Component parseComponent(String string) {
 		StringBuilder builder = new StringBuilder(string);
