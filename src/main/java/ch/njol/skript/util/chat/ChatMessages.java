@@ -619,11 +619,11 @@ public class ChatMessages {
 		Map.entry("l", "bold"),
 		Map.entry("r", "reset"),
 		Map.entry("k", "obf"),
-		Map.entry("s", "strikethrough"),
+		Map.entry("m", "strikethrough"),
 		Map.entry("n", "u"),
 		Map.entry("o", "italic")
 	);
-	private static final List<String> notReset = Arrays.asList("l", "r", "k", "s", "n", "o");
+	private static final List<String> notReset = Arrays.asList("l", "r", "k", "m", "n", "o");
 	private static final Pattern colorCodePattern = Pattern.compile("[&§]([a-z0-9])");
 
 	public static Component parseComponent(String string) {
