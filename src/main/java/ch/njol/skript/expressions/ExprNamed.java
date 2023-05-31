@@ -19,6 +19,7 @@
 package ch.njol.skript.expressions;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryType;
@@ -70,7 +71,7 @@ public class ExprNamed extends PropertyExpression<Object, Object> {
 	
 	@Override
 	protected Object[] get(final Event e, final Object[] source) {
-		Component name = this.name.getSingle(e);
+		Component name = this.name.getSingle(e).decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE);
 		if (name == null)
 			return get(source, obj -> obj); // No name provided, do nothing
 		return get(source, new Getter<Object, Object>() {
