@@ -45,6 +45,7 @@ import ch.njol.skript.util.chat.ChatMessages;
 import ch.njol.util.Kleenean;
 import ch.njol.util.NonNullPair;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
@@ -157,7 +158,7 @@ public class ExprParse extends SimpleExpression<Object> {
 		Object textExpression = this.text.getSingle(event);
 		String text;
 		if (textExpression instanceof Component c) text = ChatMessages.plain(c);
-		else if (textExpression instanceof String s) text = s;
+		else if (textExpression instanceof String s) text = MiniMessage.miniMessage().stripTags(s);
 		else text = null;
 
 		if (text == null)
