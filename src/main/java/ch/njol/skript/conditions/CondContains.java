@@ -60,7 +60,9 @@ public class CondContains extends Condition {
 			"%inventories% (has|have) %itemtypes% [in [(the[ir]|his|her|its)] inventory]",
 			"%inventories% (doesn't|does not|do not|don't) have %itemtypes% [in [(the[ir]|his|her|its)] inventory]",
 			"%inventories/components/strings/objects% contain[(1¦s)] %itemtypes/components/strings/objects%",
-			"%inventories/components/strings/objects% (doesn't|does not|do not|don't) contain %itemtypes/components/strings/objects%"
+			"%inventories/components/strings/objects% (doesn't|does not|do not|don't) contain %itemtypes/components/strings/objects%",
+			"raw %strings% contain[(1¦s)] %strings%",
+			"raw %strings% (doesn't|does not|do not|don't) contain %strings%"
 		);
 	}
 
@@ -68,7 +70,7 @@ public class CondContains extends Condition {
 	 * The type of check to perform
 	 */
 	private enum CheckType {
-		STRING, INVENTORY, OBJECTS, UNKNOWN
+		STRING, INVENTORY, OBJECTS, UNKNOWN, RAW_STRING
 	}
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
@@ -87,7 +89,9 @@ public class CondContains extends Condition {
 
 		explicitSingle = matchedPattern == 2 && parseResult.mark != 1 || containers.isSingle();
 
-		if (matchedPattern <= 1) {
+		if (matchedPattern >= 4) {
+			checkType = CheckType.RAW_STRING;
+		} else if (matchedPattern <= 1) {
 			checkType = CheckType.INVENTORY;
 		} else {
 			checkType = CheckType.UNKNOWN;
@@ -101,10 +105,10 @@ public class CondContains extends Condition {
 	public boolean check(Event e) {
 		CheckType checkType = this.checkType;
 
-		Object[] containerValues = Arrays.stream(containers.getAll(e)).map(container -> {
+		Object[] containerValues = checkType != CheckType.RAW_STRING ? Arrays.stream(containers.getAll(e)).map(container -> {
 			if (container instanceof Component c) return plain(c);
 			else return container;
-		}).toArray(Object[]::new);
+		}).toArray(Object[]::new) : containers.getAll(e);
 
 		if (containerValues.length == 0)
 			return isNegated();
@@ -122,22 +126,7 @@ public class CondContains extends Condition {
 			}
 		}
 
-		if (checkType == CheckType.INVENTORY) {
-			return SimpleExpression.check(containerValues, o -> {
-				Inventory inventory = (Inventory) o;
-
-				return items.check(e, o1 -> {
-					if (o1 instanceof ItemType)
-						return ((ItemType) o1).isContainedIn(inventory);
-					else if (o1 instanceof ItemStack)
-						return inventory.containsAtLeast((ItemStack) o1, ((ItemStack) o1).getAmount());
-					else if (o1 instanceof Inventory)
-						return Objects.equals(inventory, o1);
-					else
-						return false;
-				});
-			}, isNegated(), containers.getAnd());
-		} else if (checkType == CheckType.STRING) {
+		if (checkType == CheckType.RAW_STRING) {
 			boolean caseSensitive = SkriptConfig.caseSensitive.value();
 
 			return SimpleExpression.check(containerValues, o -> {
@@ -145,24 +134,53 @@ public class CondContains extends Condition {
 
 				return items.check(e, o1 -> {
 					if (o1 instanceof String s1) {
-						return StringUtils.contains(string, plain(parseComponent(s1)), caseSensitive);
-					} else if (o1 instanceof Component c1) {
-						return StringUtils.contains(string, plain(c1), caseSensitive);
+						return StringUtils.contains(string, s1, caseSensitive);
 					} else {
 						return false;
 					}
 				});
 			}, isNegated(), containers.getAnd());
-		} else {
-			assert checkType == CheckType.OBJECTS;
+		} else if (checkType == CheckType.INVENTORY) {
+				return SimpleExpression.check(containerValues, o -> {
+					Inventory inventory = (Inventory) o;
 
-			return items.check(e, o1 -> {
-				for (Object o2 : containerValues) {
-					if (Comparators.compare(o1, o2) == Relation.EQUAL)
-						return true;
-				}
-				return false;
-			}, isNegated());
+					return items.check(e, o1 -> {
+						if (o1 instanceof ItemType)
+							return ((ItemType) o1).isContainedIn(inventory);
+						else if (o1 instanceof ItemStack)
+							return inventory.containsAtLeast((ItemStack) o1, ((ItemStack) o1).getAmount());
+						else if (o1 instanceof Inventory)
+							return Objects.equals(inventory, o1);
+						else
+							return false;
+					});
+				}, isNegated(), containers.getAnd());
+		} else if (checkType == CheckType.STRING) {
+				boolean caseSensitive = SkriptConfig.caseSensitive.value();
+
+				return SimpleExpression.check(containerValues, o -> {
+					String string = (String) o;
+
+					return items.check(e, o1 -> {
+						if (o1 instanceof String s1) {
+							return StringUtils.contains(string, plain(parseComponent(s1)), caseSensitive);
+						} else if (o1 instanceof Component c1) {
+							return StringUtils.contains(string, plain(c1), caseSensitive);
+						} else {
+							return false;
+						}
+					});
+				}, isNegated(), containers.getAnd());
+		} else {
+				assert checkType == CheckType.OBJECTS;
+
+				return items.check(e, o1 -> {
+					for (Object o2 : containerValues) {
+						if (Comparators.compare(o1, o2) == Relation.EQUAL)
+							return true;
+					}
+					return false;
+				}, isNegated());
 		}
 	}
 	
