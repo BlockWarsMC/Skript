@@ -163,7 +163,7 @@ public class CondContains extends Condition {
 
 					return items.check(e, o1 -> {
 						if (o1 instanceof String s1) {
-							return StringUtils.contains(string, plain(parseComponent(s1)), caseSensitive);
+							return StringUtils.contains(string, ChatMessages.stripStyles(s1), caseSensitive);
 						} else if (o1 instanceof Component c1) {
 							return StringUtils.contains(string, plain(c1), caseSensitive);
 						} else {

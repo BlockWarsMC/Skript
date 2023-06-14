@@ -24,6 +24,7 @@ import ch.njol.skript.aliases.Aliases;
 import ch.njol.skript.aliases.ItemData;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.classes.ClassInfo;
+import ch.njol.skript.util.chat.ChatMessages;
 import net.kyori.adventure.text.Component;
 import org.skriptlang.skript.lang.comparator.Comparator;
 import ch.njol.skript.entity.BoatChestData;
@@ -395,7 +396,7 @@ public class DefaultComparators {
 
 		// Component - String
 		Comparators.registerComparator(Component.class, String.class, (component, string) -> {
-			String stringComponent = plain(parseComponent(string));
+			String stringComponent = ChatMessages.stripStyles(string);
 			return Relation.get(plain(component).equals(stringComponent));
 		});
 		

@@ -581,13 +581,7 @@ public class ChatMessages {
 		String result = text;
 		do {
 			previous = result;
-			
-			List<MessageComponent> components = parse(result);
-			StringBuilder builder = new StringBuilder();
-			for (MessageComponent component : components) { // This also strips bracket tags ex. <red> <ttp:..> etc.
-				builder.append(component.text);
-			}
-			String plain = builder.toString();
+			String plain = result.replaceAll("(<[^>]*>)", "");
 			
 			if (Utils.HEX_SUPPORTED) // Strip '§x', '&x'
 				plain = HEX_COLOR_PATTERN.matcher(plain).replaceAll("");
