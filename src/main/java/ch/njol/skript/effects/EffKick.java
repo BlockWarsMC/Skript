@@ -18,6 +18,7 @@
  */
 package ch.njol.skript.effects;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerKickEvent;
@@ -46,19 +47,19 @@ import ch.njol.util.Kleenean;
 @Since("1.0")
 public class EffKick extends Effect {
 	static {
-		Skript.registerEffect(EffKick.class, "kick %players% [(by reason of|because [of]|on account of|due to) %-string%]");
+		Skript.registerEffect(EffKick.class, "kick %players% [(by reason of|because [of]|on account of|due to) %-component%]");
 	}
 	
 	@SuppressWarnings("null")
 	private Expression<Player> players;
 	@Nullable
-	private Expression<String> reason;
+	private Expression<Component> reason;
 	
 	@SuppressWarnings({"unchecked", "null"})
 	@Override
 	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final ParseResult parseResult) {
 		players = (Expression<Player>) exprs[0];
-		reason = (Expression<String>) exprs[1];
+		reason = (Expression<Component>) exprs[1];
 		return true;
 	}
 	
@@ -69,16 +70,16 @@ public class EffKick extends Effect {
 	
 	@Override
 	protected void execute(final Event e) {
-		final String r = reason != null ? reason.getSingle(e) : "";
+		final Component r = reason != null ? reason.getSingle(e) : Component.empty();
 		if (r == null)
 			return;
 		for (final Player p : players.getArray(e)) {
 			if (e instanceof PlayerLoginEvent && p.equals(((PlayerLoginEvent) e).getPlayer()) && !Delay.isDelayed(e)) {
 				((PlayerLoginEvent) e).disallow(Result.KICK_OTHER, r);
 			} else if (e instanceof PlayerKickEvent && p.equals(((PlayerKickEvent) e).getPlayer()) && !Delay.isDelayed(e)) {
-				((PlayerKickEvent) e).setLeaveMessage(r);
+				((PlayerKickEvent) e).leaveMessage(r);
 			} else {
-				p.kickPlayer(r);
+				p.kick(r);
 			}
 		}
 	}

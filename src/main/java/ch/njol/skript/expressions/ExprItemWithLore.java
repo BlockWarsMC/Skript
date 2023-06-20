@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import ch.njol.skript.util.chat.ChatMessages;
+import net.kyori.adventure.text.Component;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.eclipse.jdt.annotation.Nullable;
@@ -67,11 +69,12 @@ public class ExprItemWithLore extends PropertyExpression<ItemType, ItemType> {
 		List<String> lore = this.lore.stream(e)
 			.flatMap(l -> Arrays.stream(l.split("\n")))
 			.collect(Collectors.toList());
+		List<Component> lores = ChatMessages.parseComponents(lore);
 
 		return get(source, item -> {
 			item = item.clone();
 			ItemMeta meta = item.getItemMeta();
-			meta.setLore(lore);
+			meta.lore(lores);
 			item.setItemMeta(meta);
 			return item;
 		});

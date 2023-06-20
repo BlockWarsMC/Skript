@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ch.njol.skript.util.chat.ChatMessages;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.Event;
@@ -219,7 +220,9 @@ public class ExprLore extends SimpleExpression<String> {
 			}
 		}
 
-		meta.setLore(lore == null || lore.size() == 0 ? null : lore);
+		if (lore != null && lore.size() != 0) {
+			meta.lore(ChatMessages.parseComponents(lore));
+		}
 		if (i instanceof ItemStack) {
 			((ItemStack) i).setItemMeta(meta);
 		} else {

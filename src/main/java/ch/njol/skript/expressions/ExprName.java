@@ -24,6 +24,8 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.njol.skript.util.chat.ChatMessages;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Nameable;
@@ -57,6 +59,8 @@ import ch.njol.skript.util.slot.Slot;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import net.md_5.bungee.api.ChatColor;
+
+import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
 
 @Name("Name / Display Name / Tab List Name")
 @Description({
@@ -157,12 +161,15 @@ public class ExprName extends SimplePropertyExpression<Object, String> {
 
 		if (o instanceof Player) {
 			switch (mark) {
-				case 1:
+				case 1 -> {
 					return ((Player) o).getName();
-				case 2:
+				}
+				case 2 -> {
 					return ((Player) o).getDisplayName();
-				case 3:
+				}
+				case 3 -> {
 					return ((Player) o).getPlayerListName();
+				}
 			}
 		} else if (o instanceof OfflinePlayer) {
 			return mark == 1 ? ((OfflinePlayer) o).getName() : null;
@@ -221,16 +228,15 @@ public class ExprName extends SimplePropertyExpression<Object, String> {
 
 	@Override
 	public void change(Event e, @Nullable Object[] delta, ChangeMode mode) {
-		String name = delta != null ? (String) delta[0] : null;
+		String name = (String) delta[0];
+
 		for (Object o : getExpr().getArray(e)) {
 			if (o instanceof Player) {
 				switch (mark) {
-					case 2:
+					case 2 ->
 						((Player) o).setDisplayName(name != null ? name + ChatColor.RESET : ((Player) o).getName());
-						break;
-					case 3: // Null check not necessary. This method will use the player's name if 'name' is null.
+					case 3 -> // Null check not necessary. This method will use the player's name if 'name' is null.
 						((Player) o).setPlayerListName(name);
-						break;
 				}
 			} else if (o instanceof Entity) {
 				((Entity) o).setCustomName(name);
@@ -244,13 +250,14 @@ public class ExprName extends SimplePropertyExpression<Object, String> {
 					((Nameable) state).setCustomName(name);
 					state.update();
 				}
-			} else if (o instanceof ItemType) {
-				ItemType i = (ItemType) o;
+			} else if (o instanceof ItemType i) {
+				Component cName = name == null ? null : parseComponent(name);
+
 				ItemMeta m = i.getItemMeta();
-				m.setDisplayName(name);
+				m.displayName(cName);
 				i.setItemMeta(m);
-			} else if (o instanceof Inventory) {
-				Inventory inv = (Inventory) o;
+			} else if (o instanceof Inventory inv) {
+				Component cName = name == null ? null : parseComponent(name);
 
 				if (inv.getViewers().isEmpty())
 					return;
@@ -260,23 +267,23 @@ public class ExprName extends SimplePropertyExpression<Object, String> {
 				InventoryType type = inv.getType();
 				if (!type.isCreatable())
 					return;
-				if (name == null)
-					name = type.getDefaultTitle();
+				if (cName == null)
+					cName = type.defaultTitle();
 
 				Inventory copy;
 				if (type == InventoryType.CHEST) {
-					copy = Bukkit.createInventory(inv.getHolder(), inv.getSize(), name);
+					copy = Bukkit.createInventory(inv.getHolder(), inv.getSize(), cName);
 				} else {
-					copy = Bukkit.createInventory(inv.getHolder(), type, name);
+					copy = Bukkit.createInventory(inv.getHolder(), type, cName);
 				}
 				copy.setContents(inv.getContents());
 				viewers.forEach(viewer -> viewer.openInventory(copy));
-			} else if (o instanceof Slot) {
-				Slot s = (Slot) o;
+			} else if (o instanceof Slot s) {
+				Component cName = name == null ? null : parseComponent(name);
 				ItemStack is = s.getItem();
 				if (is != null && !AIR.isOfType(is)) {
 					ItemMeta m = is.hasItemMeta() ? is.getItemMeta() : Bukkit.getItemFactory().getItemMeta(is.getType());
-					m.setDisplayName(name);
+					m.displayName(cName);
 					is.setItemMeta(m);
 					s.setItem(is);
 				}
@@ -291,12 +298,11 @@ public class ExprName extends SimplePropertyExpression<Object, String> {
 
 	@Override
 	protected String getPropertyName() {
-		switch (mark) {
-			case 1: return "name";
-			case 2: return "display name";
-			case 3: return "tablist name";
-			default: return "name";
-		}
+		return switch (mark) {
+			case 2 -> "display name";
+			case 3 -> "tablist name";
+			default -> "name";
+		};
 	}
 
 }

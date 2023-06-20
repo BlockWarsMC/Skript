@@ -35,6 +35,7 @@ import ch.njol.skript.util.chat.BungeeConverter;
 import ch.njol.skript.util.chat.ChatMessages;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -88,18 +89,19 @@ public class EffBroadcast extends Effect {
 		}
 
 		for (Expression<?> message : getMessages()) {
-			if (message instanceof VariableString) {
-				BaseComponent[] components = BungeeConverter.convert(((VariableString) message).getMessageComponents(e));
-				receivers.forEach(receiver -> receiver.spigot().sendMessage(components));
+			if (message instanceof VariableString vs) {
+				Component component = ChatMessages.parseComponent(vs.getSingle(e));
+				receivers.forEach(receiver -> receiver.sendMessage(component));
 			} else if (message instanceof ExprColoured && ((ExprColoured) message).isUnsafeFormat()) { // Manually marked as trusted
 				for (Object realMessage : message.getArray(e)) {
-					BaseComponent[] components = BungeeConverter.convert(ChatMessages.parse((String) realMessage));
-					receivers.forEach(receiver -> receiver.spigot().sendMessage(components));
+					Component component = ChatMessages.parseComponent((String) realMessage);
+					receivers.forEach(receiver -> receiver.sendMessage(component));
 				}
 			} else {
 				for (Object messageObject : message.getArray(e)) {
 					String realMessage = messageObject instanceof String ? (String) messageObject : Classes.toString(messageObject);
-					receivers.forEach(receiver -> receiver.sendMessage(realMessage));
+					Component component = ChatMessages.parseComponent(realMessage);
+					receivers.forEach(receiver -> receiver.sendMessage(component));
 				}
 			}
 		}

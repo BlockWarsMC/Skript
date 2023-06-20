@@ -18,6 +18,8 @@
  */
 package ch.njol.skript.expressions;
 
+import ch.njol.skript.util.chat.ChatMessages;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.server.ServerListPingEvent;
@@ -104,14 +106,12 @@ public class ExprMOTD extends SimpleExpression<String> {
 
 		ServerListPingEvent event = (ServerListPingEvent) e;
 		switch (mode) {
-			case SET:
-				event.setMotd((String) delta[0]);
-				break;
-			case DELETE:
-				event.setMotd("");
-				break;
-			case RESET:
-				event.setMotd(Bukkit.getMotd());
+			case SET -> {
+				Component deltaComponent = ChatMessages.parseComponent((String) delta[0]);
+				event.motd(deltaComponent);
+			}
+			case DELETE -> event.motd(Component.empty());
+			case RESET -> event.motd(Bukkit.motd());
 		}
 	}
 

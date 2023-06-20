@@ -584,11 +584,6 @@ public abstract class Utils {
 				final String f = chat.get(tag);
 				if (f != null)
 					return f;
-				if (HEX_SUPPORTED && tag.startsWith("#")) { // Check for parsing hex colors
-					ChatColor chatColor = parseHexColor(tag);
-					if (chatColor != null)
-						return chatColor.toString();
-				}
 				return "" + m.group();
 			}
 		});
@@ -622,11 +617,6 @@ public abstract class Utils {
 				final String f = englishChat.get(tag);
 				if (f != null)
 					return f;
-				if (HEX_SUPPORTED && tag.startsWith("#")) { // Check for parsing hex colors
-					ChatColor chatColor = parseHexColor(tag);
-					if (chatColor != null)
-						return chatColor.toString();
-				}
 				return "" + m.group();
 			}
 		});
@@ -650,15 +640,7 @@ public abstract class Utils {
 	@SuppressWarnings("null")
 	@Nullable
 	public static ChatColor parseHexColor(String hex) {
-		if (!HEX_SUPPORTED || !HEX_PATTERN.matcher(hex).matches()) // Proper hex code validation
-			return null;
-		
-		hex = hex.replace("#", "");
-		try {
-			return ChatColor.of('#' + hex.substring(0, 6));
-		} catch (IllegalArgumentException e) {
-			return null;
-		}
+		return null;
 	}
 	
 	/**

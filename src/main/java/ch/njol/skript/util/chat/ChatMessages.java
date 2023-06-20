@@ -25,6 +25,10 @@ import ch.njol.skript.localization.LanguageChangeListener;
 import ch.njol.skript.util.Utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -37,7 +41,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Handles parsing chat messages.
@@ -79,6 +85,10 @@ public class ChatMessages {
 	 * Instance of GSON we use for serialization.
 	 */
 	static final Gson gson;
+	private static final List<TagResolver> tagResolvers = new ArrayList<>();
+	public static void addTagResolver(TagResolver resolver) {
+		tagResolvers.add(resolver);
+	}
 	
 	/**
 	 * Registers language change listener for chat system.
@@ -489,6 +499,60 @@ public class ChatMessages {
 		current.text = curStr.toString();
 
 		return components;
+	}
+
+	private static final Map<String, String> colorCodeTranslators = Map.ofEntries(
+		Map.entry("4", "dark_red"),
+		Map.entry("c", "red"),
+		Map.entry("6", "gold"),
+		Map.entry("e", "yellow"),
+		Map.entry("2", "dark_green"),
+		Map.entry("a", "green"),
+		Map.entry("b", "aqua"),
+		Map.entry("3", "dark_aqua"),
+		Map.entry("1", "dark_blue"),
+		Map.entry("9", "blue"),
+		Map.entry("d", "light_purple"),
+		Map.entry("5", "dark_purple"),
+		Map.entry("f", "white"),
+		Map.entry("7", "gray"),
+		Map.entry("8", "dark_gray"),
+		Map.entry("0", "black"),
+
+		Map.entry("l", "bold"),
+		Map.entry("r", "reset"),
+		Map.entry("k", "obf"),
+		Map.entry("m", "strikethrough"),
+		Map.entry("n", "u"),
+		Map.entry("o", "italic")
+	);
+	private static final List<String> notReset = Arrays.asList("l", "r", "k", "m", "n", "o");
+	private static final String resetString = "<!italic><!bold><!u><!st>";
+	private static final Pattern colorCodePattern = Pattern.compile("[&§]([a-z0-9])");
+
+	public static Component parseComponent(String string) {
+		StringBuilder builder = new StringBuilder("&r" + string);
+		Matcher matcher = colorCodePattern.matcher(builder);
+		String s = matcher.replaceAll(result -> {
+			String code = result.group(1);
+			if (code.equals("r")) {
+				return resetString;
+			}
+			String tag = "<" + colorCodeTranslators.get(code) + ">";
+			if (!notReset.contains(code)) tag = resetString + tag;
+			return tag;
+		});
+		return MiniMessage.miniMessage().deserialize(s, tagResolvers.toArray(TagResolver[]::new));
+	}
+
+	public static Component[] parseComponents(String ...strings) {
+		return Arrays.stream(strings).map(ChatMessages::parseComponent).toArray(Component[]::new);
+	}
+	public static List<Component> parseComponents(List<String> strings) {
+		return strings.stream().map(ChatMessages::parseComponent).collect(Collectors.toList());
+	}
+	public static String plain(Component s) {
+		return PlainTextComponentSerializer.plainText().serialize(s);
 	}
 	
 	public static String toJson(String msg) {

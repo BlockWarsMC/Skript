@@ -18,6 +18,8 @@
  */
 package ch.njol.skript.expressions;
 
+import ch.njol.skript.util.chat.ChatMessages;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryType;
@@ -69,10 +71,12 @@ public class ExprNamed extends PropertyExpression<Object, Object> {
 	
 	@Override
 	protected Object[] get(final Event e, final Object[] source) {
-		String name = this.name.getSingle(e);
+		String stringName = this.name.getSingle(e);
+		Component name = stringName == null ? null : ChatMessages.parseComponent(stringName);
+
 		if (name == null)
 			return get(source, obj -> obj); // No name provided, do nothing
-		return get(source, new Getter<Object, Object>() {
+		return get(source, new Getter<>() {
 			@Override
 			@Nullable
 			public Object get(Object obj) {
@@ -83,7 +87,7 @@ public class ExprNamed extends PropertyExpression<Object, Object> {
 					stack = stack.clone();
 					ItemMeta meta = stack.getItemMeta();
 					if (meta != null) {
-						meta.setDisplayName(name);
+						meta.displayName(name);
 						stack.setItemMeta(meta);
 					}
 					return new ItemType(stack);
@@ -91,7 +95,7 @@ public class ExprNamed extends PropertyExpression<Object, Object> {
 				ItemType item = (ItemType) obj;
 				item = item.clone();
 				ItemMeta meta = item.getItemMeta();
-				meta.setDisplayName(name);
+				meta.displayName(name);
 				item.setItemMeta(meta);
 				return item;
 			}

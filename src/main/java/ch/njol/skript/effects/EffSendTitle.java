@@ -52,10 +52,10 @@ import java.util.List;
 	"Sends a title/subtitle to the given player(s) with optional fadein/stay/fadeout times for Minecraft versions 1.11 and above. ",
 	"",
 	"If you're sending only the subtitle, it will be shown only if there's a title displayed at the moment, otherwise it will " +
-	"be sent with the next title. To show only the subtitle, use: <code>send title \" \" with subtitle \"yourtexthere\" to player</code>.",
+		"be sent with the next title. To show only the subtitle, use: <code>send title \" \" with subtitle \"yourtexthere\" to player</code>.",
 	"",
 	"Note: if no input is given for the times, it will keep the ones from the last title sent, " +
-	"use the <a href='effects.html#EffResetTitle'>reset title</a> effect to restore the default values."
+		"use the <a href='effects.html#EffResetTitle'>reset title</a> effect to restore the default values."
 })
 @Examples({
 	"send title \"Competition Started\" with subtitle \"Have fun, Stay safe!\" to player for 5 seconds",
@@ -66,34 +66,34 @@ import java.util.List;
 })
 @Since("2.3")
 public class EffSendTitle extends Effect {
-	
+
 	private final static boolean TIME_SUPPORTED = Skript.methodExists(Player.class,"sendTitle", String.class, String.class, int.class, int.class, int.class);
-	
+
 	static {
 		if (TIME_SUPPORTED)
 			Skript.registerEffect(EffSendTitle.class,
-					"send title %string% [with subtitle %-string%] [to %players%] [for %-timespan%] [with fade[(-| )]in %-timespan%] [(and|with) fade[(-| )]out %-timespan%]",
-					"send subtitle %string% [to %players%] [for %-timespan%] [with fade[(-| )]in %-timespan%] [(and|with) fade[(-| )]out %-timespan%]");
+				"send title %component% [with subtitle %-component%] [to %players%] [for %-timespan%] [with fade[(-| )]in %-timespan%] [(and|with) fade[(-| )]out %-timespan%]",
+				"send subtitle %component% [to %players%] [for %-timespan%] [with fade[(-| )]in %-timespan%] [(and|with) fade[(-| )]out %-timespan%]");
 		else
 			Skript.registerEffect(EffSendTitle.class,
-					"send title %string% [with subtitle %-string%] [to %players%]",
-					"send subtitle %string% [to %players%]");
+				"send title %component% [with subtitle %-component%] [to %players%]",
+				"send subtitle %component% [to %players%]");
 	}
-	
+
 	@Nullable
-	private Expression<String> title;
+	private Expression<Component> title;
 	@Nullable
-	private Expression<String> subtitle;
+	private Expression<Component> subtitle;
 	@SuppressWarnings("null")
 	private Expression<Player> recipients;
 	@Nullable
 	private Expression<Timespan> fadeIn, stay, fadeOut;
-	
+
 	@SuppressWarnings({"unchecked", "null"})
 	@Override
 	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final ParseResult parser) {
-		title = matchedPattern == 0 ? (Expression<String>) exprs[0] : null;
-		subtitle = (Expression<String>) exprs[1 - matchedPattern];
+		title = matchedPattern == 0 ? (Expression<Component>) exprs[0] : null;
+		subtitle = (Expression<Component>) exprs[1 - matchedPattern];
 		recipients = (Expression<Player>) exprs[2 - matchedPattern];
 		if (TIME_SUPPORTED) {
 			stay = (Expression<Timespan>) exprs[3 - matchedPattern];
@@ -102,18 +102,12 @@ public class EffSendTitle extends Effect {
 		}
 		return true;
 	}
-	
+
 	@SuppressWarnings("null")
 	@Override
 	protected void execute(final Event e) {
-		String titleText = this.title != null ? this.title.getSingle(e) : null;
-
-		Component title = this.title != null ?
-			BungeeComponentSerializer.get().deserialize(BungeeConverter.convert(ChatMessages.parse(titleText))) : null;
-
-		String subtitleText = this.subtitle != null ? this.subtitle.getSingle(e) : null;
-		Component subtitle = this.subtitle != null ?
-			BungeeComponentSerializer.get().deserialize(BungeeConverter.convert(ChatMessages.parse(subtitleText))) : null;
+		Component title = this.title != null ? this.title.getSingle(e) : null;
+		Component subtitle = this.subtitle != null ? this.subtitle.getSingle(e) : null;
 
 		if (TIME_SUPPORTED) {
 			long fadeIn, stay, fadeOut;
@@ -149,19 +143,19 @@ public class EffSendTitle extends Effect {
 				p.sendTitlePart(TitlePart.SUBTITLE, subtitle);
 		}
 	}
-	
+
 	// TODO: util method to simplify this
 	@Override
 	public String toString(final @Nullable Event e, final boolean debug) {
 		String title = this.title != null ? this.title.toString(e, debug) : "",
-		sub = subtitle != null ? subtitle.toString(e, debug) : "",
-		in = fadeIn != null ? fadeIn.toString(e, debug) : "",
-		stay = this.stay != null ? this.stay.toString(e, debug) : "",
-		out = fadeOut != null ? this.fadeOut.toString(e, debug) : "";
+			sub = subtitle != null ? subtitle.toString(e, debug) : "",
+			in = fadeIn != null ? fadeIn.toString(e, debug) : "",
+			stay = this.stay != null ? this.stay.toString(e, debug) : "",
+			out = fadeOut != null ? this.fadeOut.toString(e, debug) : "";
 		return ("send title " + title +
-				sub == "" ? "" : " with subtitle " + sub) + " to " +
-				recipients.toString(e, debug) + (TIME_SUPPORTED ?
-				" for " + stay + " with fade in " + in + " and fade out" + out : "");
+			sub == "" ? "" : " with subtitle " + sub) + " to " +
+			recipients.toString(e, debug) + (TIME_SUPPORTED ?
+			" for " + stay + " with fade in " + in + " and fade out" + out : "");
 	}
-	
+
 }
