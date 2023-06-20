@@ -41,11 +41,8 @@ import ch.njol.skript.patterns.MalformedPatternException;
 import ch.njol.skript.patterns.MatchResult;
 import ch.njol.skript.patterns.PatternCompiler;
 import ch.njol.skript.patterns.SkriptPattern;
-import ch.njol.skript.util.chat.ChatMessages;
 import ch.njol.util.Kleenean;
 import ch.njol.util.NonNullPair;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
@@ -79,14 +76,14 @@ public class ExprParse extends SimpleExpression<Object> {
 
 	static {
 		Skript.registerExpression(ExprParse.class, Object.class, ExpressionType.COMBINED,
-			"%string/component% parsed as (%-*classinfo%|\"<.*>\")");
+			"%string% parsed as (%-*classinfo%|\"<.*>\")");
 	}
 
 	@Nullable
 	static String lastError = null;
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
-	private Expression<?> text;
+	private Expression<String> text;
 
 	@Nullable
 	private SkriptPattern pattern;
@@ -100,7 +97,7 @@ public class ExprParse extends SimpleExpression<Object> {
 	@Override
 	@SuppressWarnings({"unchecked", "null"})
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
-		text = exprs[0];
+		text = (Expression<String>) exprs[0];
 		if (exprs[1] == null) {
 			String pattern = ChatColor.translateAlternateColorCodes('&', parseResult.regexes.get(0).group());
 
@@ -155,12 +152,7 @@ public class ExprParse extends SimpleExpression<Object> {
 	@Nullable
 	@SuppressWarnings("null")
 	protected Object[] get(Event event) {
-		Object textExpression = this.text.getSingle(event);
-		String text;
-		if (textExpression instanceof Component c) text = ChatMessages.plain(c);
-		else if (textExpression instanceof String s) text = MiniMessage.miniMessage().stripTags(s);
-		else text = null;
-
+		String text = this.text.getSingle(event);
 		if (text == null)
 			return null;
 

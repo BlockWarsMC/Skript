@@ -18,8 +18,6 @@
  */
 package ch.njol.skript.expressions;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryType;
@@ -55,23 +53,23 @@ import ch.njol.util.Kleenean;
 public class ExprNamed extends PropertyExpression<Object, Object> {
 	static {
 		Skript.registerExpression(ExprNamed.class, Object.class, ExpressionType.PROPERTY,
-				"%itemtype/inventorytype% (named|with name[s]) %component%");
+				"%itemtype/inventorytype% (named|with name[s]) %string%");
 	}
 	
 	@SuppressWarnings("null")
-	private Expression<Component> name;
+	private Expression<String> name;
 	
 	@SuppressWarnings({"unchecked", "null"})
 	@Override
 	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final ParseResult parseResult) {
 		setExpr(exprs[0]);
-		name = (Expression<Component>) exprs[1];
+		name = (Expression<String>) exprs[1];
 		return true;
 	}
 	
 	@Override
 	protected Object[] get(final Event e, final Object[] source) {
-		Component name = this.name.getSingle(e).decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+		String name = this.name.getSingle(e);
 		if (name == null)
 			return get(source, obj -> obj); // No name provided, do nothing
 		return get(source, new Getter<Object, Object>() {
@@ -85,7 +83,7 @@ public class ExprNamed extends PropertyExpression<Object, Object> {
 					stack = stack.clone();
 					ItemMeta meta = stack.getItemMeta();
 					if (meta != null) {
-						meta.displayName(name);
+						meta.setDisplayName(name);
 						stack.setItemMeta(meta);
 					}
 					return new ItemType(stack);
@@ -93,7 +91,7 @@ public class ExprNamed extends PropertyExpression<Object, Object> {
 				ItemType item = (ItemType) obj;
 				item = item.clone();
 				ItemMeta meta = item.getItemMeta();
-				meta.displayName(name);
+				meta.setDisplayName(name);
 				item.setItemMeta(meta);
 				return item;
 			}

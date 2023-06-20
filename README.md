@@ -12,10 +12,9 @@
   - Adds `EffRemoveEntity` to remove an entity instead of killing it
   - Adds the ability to add fonts and other stylings into titles
   - Adds disabling/enabling events without disabling/enabling skript files
-  - Adds support for Kyori Adventure & MiniMessage
 #### This fork contains changes specifically for the BlockWars codebase
 
-Skript is a plugin for Paper, which allows server owners and other people
+Skript is a plugin for Paper/Spigot, which allows server owners and other people
 to modify their servers without learning Java. It can also be useful if you
 *do* know Java; some tasks are quicker to do with Skript, and so it can be used
 for prototyping etc.
@@ -24,10 +23,17 @@ This Github fork of Skript is based on Mirreski's improvements which was built
 on Njol's original Skript.
 
 ## Requirements
-Skript requires **Paper** to work, and **FastAsyncWorldEdit** is also required.
+Skript requires **Spigot** to work. You heard it right, Bukkit does *not* work.
+**Paper**, which is a fork of Spigot, is recommended; it is required for some
+parts of Skript to be available.
 
-Requires: **1.19+** to work, older/newer versions may work, but this fork is intented on
-our needed functionality, and **not** backwards compatibility.
+Skript supports only the **latest** patch versions of Minecraft 1.9+.
+For example, this means that 1.16.4 is supported, but 1.16.3 is *not*.
+Testing with all old patch versions is not feasible for us.
+
+Minecraft 1.8 and earlier are not, and will not be supported. New Minecraft
+versions will be supported as soon as possible.
+
 
 ## Documentation
 Documentation is available [here](https://skriptlang.github.io/Skript) for the

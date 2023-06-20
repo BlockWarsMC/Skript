@@ -18,7 +18,6 @@
  */
 package ch.njol.skript.expressions;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.server.ServerListPingEvent;
@@ -38,8 +37,6 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 
-import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
-
 @Name("MOTD")
 @Description({"The message of the day in the server list. " +
 		"This can be changed in a <a href='events.html#server_list_ping'>server list ping</a> event only.",
@@ -47,10 +44,10 @@ import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
 @Examples({"on server list ping:",
 		"	set the motd to \"Join now!\""})
 @Since("2.3")
-public class ExprMOTD extends SimpleExpression<Component> {
+public class ExprMOTD extends SimpleExpression<String> {
 
 	static {
-		Skript.registerExpression(ExprMOTD.class, Component.class, ExpressionType.SIMPLE, "[the] [(1¦default)|(2¦shown|displayed)] (MOTD|message of [the] day)");
+		Skript.registerExpression(ExprMOTD.class, String.class, ExpressionType.SIMPLE, "[the] [(1¦default)|(2¦shown|displayed)] (MOTD|message of [the] day)");
 	}
 
 	private static final boolean PAPER_EVENT_EXISTS = Skript.classExists("com.destroystokyo.paper.event.server.PaperServerListPingEvent");
@@ -71,14 +68,14 @@ public class ExprMOTD extends SimpleExpression<Component> {
 
 	@Override
 	@Nullable
-	public Component[] get(Event e) {
+	public String[] get(Event e) {
 		if (!isDefault && !(e instanceof ServerListPingEvent))
 			return null;
 
 		if (isDefault)
-			return CollectionUtils.array(Bukkit.motd());
+			return CollectionUtils.array(Bukkit.getMotd());
 		else
-			return CollectionUtils.array(((ServerListPingEvent) e).motd());
+			return CollectionUtils.array(((ServerListPingEvent) e).getMotd());
 	}
 
 	@Override
@@ -102,17 +99,19 @@ public class ExprMOTD extends SimpleExpression<Component> {
 	@SuppressWarnings("null")
 	@Override
 	public void change(Event e, @Nullable Object[] delta, ChangeMode mode) {
-		if (!(e instanceof ServerListPingEvent event))
+		if (!(e instanceof ServerListPingEvent))
 			return;
 
-		Component name = null;
-		if (delta[0] instanceof Component c) name = (Component)delta[0];
-		else if (delta[0] instanceof String s) name = parseComponent(s);
-
+		ServerListPingEvent event = (ServerListPingEvent) e;
 		switch (mode) {
-			case SET -> event.motd(name);
-			case DELETE -> event.motd(Component.empty());
-			case RESET -> event.motd(Bukkit.motd());
+			case SET:
+				event.setMotd((String) delta[0]);
+				break;
+			case DELETE:
+				event.setMotd("");
+				break;
+			case RESET:
+				event.setMotd(Bukkit.getMotd());
 		}
 	}
 
@@ -122,8 +121,8 @@ public class ExprMOTD extends SimpleExpression<Component> {
 	}
 
 	@Override
-	public Class<? extends Component> getReturnType() {
-		return Component.class;
+	public Class<? extends String> getReturnType() {
+		return String.class;
 	}
 
 	@Override

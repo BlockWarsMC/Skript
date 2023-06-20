@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ch.njol.skript.util.chat.ChatMessages;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.Event;
@@ -52,9 +50,6 @@ import ch.njol.util.Math2;
 import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
 
-import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
-import static ch.njol.skript.util.chat.ChatMessages.parseComponents;
-
 /**
  * TODO make a 'line %number% of %text%' expression and figure out how to deal with signs (4 lines, delete = empty, etc...)
  *
@@ -64,10 +59,10 @@ import static ch.njol.skript.util.chat.ChatMessages.parseComponents;
 @Description("An item's lore.")
 @Examples("set the 1st line of the item's lore to \"&lt;orange&gt;Excalibur 2.0\"")
 @Since("2.1")
-public class ExprLore extends SimpleExpression<Component> {
+public class ExprLore extends SimpleExpression<String> {
 
 	static {
-			Skript.registerExpression(ExprLore.class, Component.class, ExpressionType.PROPERTY,
+			Skript.registerExpression(ExprLore.class, String.class, ExpressionType.PROPERTY,
 					"[the] lore of %itemstack/itemtype%", "%itemstack/itemtype%'[s] lore",
 					"[the] line %number% of [the] lore of %itemstack/itemtype%",
 					"[the] line %number% of %itemstack/itemtype%'[s] lore",
@@ -91,24 +86,24 @@ public class ExprLore extends SimpleExpression<Component> {
 
 	@Override
 	@Nullable
-	protected Component[] get(final Event e) {
+	protected String[] get(final Event e) {
 		final Object i = item.getSingle(e);
 		final Number n = lineNumber != null ? lineNumber.getSingle(e) : null;
 		if (n == null && lineNumber != null)
 			return null;
 		if (i == null || i instanceof ItemStack && ((ItemStack) i).getType() == Material.AIR)
-			return new Component[0];
+			return new String[0];
 		final ItemMeta meta = i instanceof ItemStack ? ((ItemStack) i).getItemMeta() : (ItemMeta) ((ItemType) i).getItemMeta();
 		if (meta == null || !meta.hasLore())
-			return new Component[0];
-		final List<Component> lore = meta.lore();
+			return new String[0];
+		final List<String> lore = meta.getLore();
 		assert lore != null; // hasLore() called before
 		if (n == null)
-			return lore.toArray(new Component[0]);
+			return lore.toArray(new String[0]);
 		final int l = n.intValue() - 1;
 		if (l < 0 || l >= lore.size())
-			return new Component[0];
-		return new Component[]{lore.get(l)};
+			return new String[0];
+		return new String[]{lore.get(l)};
 	}
 
 	@Override
@@ -117,6 +112,7 @@ public class ExprLore extends SimpleExpression<Component> {
 		boolean acceptsMany = lineNumber == null;
 		switch (mode) {
 			case REMOVE:
+			case REMOVE_ALL:
 			case DELETE:
 				acceptsMany = false;
 			case SET:
@@ -126,7 +122,6 @@ public class ExprLore extends SimpleExpression<Component> {
 				}
 				return null;
 			case RESET:
-			case REMOVE_ALL:
 			default:
 				return null;
 		}
@@ -136,7 +131,7 @@ public class ExprLore extends SimpleExpression<Component> {
 	public void change(final Event e, final @Nullable Object[] delta, final ChangeMode mode) throws UnsupportedOperationException {
 		Object i = item.getSingle(e);
 
-		String[] stringDelta = Arrays.copyOf(delta, delta.length, String[].class);
+		String[] stringDelta = delta == null ? null : Arrays.copyOf(delta, delta.length, String[].class);
 
 		// air is just nothing, it can't have a lore
 		if (i == null || i instanceof ItemStack && ((ItemStack) i).getType() == Material.AIR)
@@ -147,7 +142,7 @@ public class ExprLore extends SimpleExpression<Component> {
 			meta = Bukkit.getItemFactory().getItemMeta(Material.STONE);
 
 		Number lineNumber = this.lineNumber != null ? this.lineNumber.getSingle(e) : null;
-		List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+		List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
 
 		if (lineNumber == null) {
 			// if the condition below is true, the pattern with the line %number% expression was used,
@@ -159,25 +154,25 @@ public class ExprLore extends SimpleExpression<Component> {
 			switch (mode) {
 				case SET:
 					assert stringDelta != null;
-					List<Component> newLore = new ArrayList<>();
+					List<String> newLore = new ArrayList<>();
 					for (String line : stringDelta) {
 						if (line.contains("\n")) {
-							Collections.addAll(newLore, parseComponents( line.split("\n") ));
+							Collections.addAll(newLore, line.split("\n"));
 							continue;
 						}
-						newLore.add(parseComponent(line));
+						newLore.add(line);
 					}
 					lore = newLore;
 					break;
 				case ADD:
 					assert stringDelta != null;
-					List<Component> addLore = new ArrayList<>();
+					List<String> addLore = new ArrayList<>();
 					for (String line : stringDelta) {
 						if (line.contains("\n")) {
-							Collections.addAll(addLore, parseComponents( line.split("\n") ));
+							Collections.addAll(addLore, line.split("\n"));
 							continue;
 						}
-						addLore.add(parseComponent(line));
+						addLore.add(line);
 					}
 					lore.addAll(addLore);
 					break;
@@ -186,7 +181,9 @@ public class ExprLore extends SimpleExpression<Component> {
 					break;
 				case REMOVE:
 				case REMOVE_ALL:
-					assert false;
+					assert stringDelta != null;
+					lore = Arrays.asList(handleRemove(
+							StringUtils.join(lore, "\n"), stringDelta[0], mode == ChangeMode.REMOVE_ALL).split("\n"));
 					break;
 				case RESET:
 					assert false;
@@ -198,26 +195,31 @@ public class ExprLore extends SimpleExpression<Component> {
 
 			// Fill in the empty lines above the line being set with empty strings (avoids index out of bounds)
 			while (lore.size() <= lineNum)
-				lore.add(Component.empty());
-			Component deltaComponent = parseComponent(stringDelta[0]);
+				lore.add("");
 			switch (mode) {
-				case SET -> {
+				case SET:
 					assert stringDelta != null;
-					lore.set(lineNum, deltaComponent);
-				}
-				case ADD -> {
+					lore.set(lineNum, stringDelta[0]);
+					break;
+				case ADD:
 					assert stringDelta != null;
-					lore.set(lineNum, lore.get(lineNum).append(deltaComponent));
-				}
-				case DELETE -> lore.remove(lineNum);
-				case REMOVE, REMOVE_ALL, RESET -> {
+					lore.set(lineNum, lore.get(lineNum) + stringDelta[0]);
+					break;
+				case DELETE:
+					lore.remove(lineNum);
+					break;
+				case REMOVE:
+				case REMOVE_ALL:
+					assert stringDelta != null;
+					lore.set(lineNum, handleRemove(lore.get(lineNum), stringDelta[0], mode == ChangeMode.REMOVE_ALL));
+					break;
+				case RESET:
 					assert false;
 					return;
-				}
 			}
 		}
 
-		meta.lore(lore == null || lore.size() == 0 ? null : lore);
+		meta.setLore(lore == null || lore.size() == 0 ? null : lore);
 		if (i instanceof ItemStack) {
 			((ItemStack) i).setItemMeta(meta);
 		} else {
@@ -234,14 +236,29 @@ public class ExprLore extends SimpleExpression<Component> {
 		}
 	}
 
+	private String handleRemove(String input, String toRemove, boolean all) {
+		if (SkriptConfig.caseSensitive.value()) {
+			if (all) {
+				return input.replace(toRemove, "");
+			} else {
+				// .replaceFirst requires the regex to be quoted, .replace does it internally
+				return input.replaceFirst(Pattern.quote(toRemove), "");
+			}
+		} else {
+			final Matcher m = Pattern.compile(Pattern.quote(toRemove),
+					Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE).matcher(input);
+			return all ? m.replaceAll("") : m.replaceFirst("");
+		}
+	}
+
 	@Override
 	public boolean isSingle() {
 		return lineNumber != null;
 	}
 
 	@Override
-	public Class<? extends Component> getReturnType() {
-		return Component.class;
+	public Class<? extends String> getReturnType() {
+		return String.class;
 	}
 
 	@Override

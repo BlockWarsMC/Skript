@@ -24,8 +24,6 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Nameable;
@@ -59,8 +57,6 @@ import ch.njol.skript.util.slot.Slot;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import net.md_5.bungee.api.ChatColor;
-
-import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
 
 @Name("Name / Display Name / Tab List Name")
 @Description({
@@ -113,7 +109,7 @@ import static ch.njol.skript.util.chat.ChatMessages.parseComponent;
 	"set the name of the player's tool to \"Legendary Sword of Awesomeness\""
 })
 @Since("before 2.1, 2.2-dev20 (inventory name), 2.4 (non-living entity support, changeable inventory name), 2.7 (worlds)")
-public class ExprName extends SimplePropertyExpression<Object, Component> {
+public class ExprName extends SimplePropertyExpression<Object, String> {
 
 	@Nullable
 	static final MethodHandle TITLE_METHOD;
@@ -121,9 +117,9 @@ public class ExprName extends SimplePropertyExpression<Object, Component> {
 
 	static {
 		HAS_GAMERULES = Skript.classExists("org.bukkit.GameRule");
-		register(ExprName.class, Component.class, "(1¦name[s]|2¦(display|nick|chat|custom)[ ]name[s])", "offlineplayers/entities/blocks/itemtypes/inventories/slots/worlds"
+		register(ExprName.class, String.class, "(1¦name[s]|2¦(display|nick|chat|custom)[ ]name[s])", "offlineplayers/entities/blocks/itemtypes/inventories/slots/worlds"
 			+ (HAS_GAMERULES ? "/gamerules" : ""));
-		register(ExprName.class, Component.class, "(3¦(player|tab)[ ]list name[s])", "players");
+		register(ExprName.class, String.class, "(3¦(player|tab)[ ]list name[s])", "players");
 
 		// Get the old method for getting the name of an inventory.
 		MethodHandle _METHOD = null;
@@ -155,44 +151,53 @@ public class ExprName extends SimplePropertyExpression<Object, Component> {
 
 	@Override
 	@Nullable
-	public Component convert(Object o) {
+	public String convert(Object o) {
 		if (o instanceof OfflinePlayer && ((OfflinePlayer) o).isOnline())
 			o = ((OfflinePlayer) o).getPlayer();
 
 		if (o instanceof Player) {
 			switch (mark) {
 				case 1:
-					return ((Player) o).name();
+					return ((Player) o).getName();
 				case 2:
-					return ((Player) o).displayName();
+					return ((Player) o).getDisplayName();
 				case 3:
-					return ((Player) o).playerListName();
+					return ((Player) o).getPlayerListName();
 			}
 		} else if (o instanceof OfflinePlayer) {
-			return mark == 1 ? Component.text(((OfflinePlayer) o).getName()) : null;
+			return mark == 1 ? ((OfflinePlayer) o).getName() : null;
 		} else if (o instanceof Entity) {
-			return ((Entity) o).customName();
+			return ((Entity) o).getCustomName();
 		} else if (o instanceof Block) {
 			BlockState state = ((Block) o).getState();
 			if (state instanceof Nameable)
-				return ((Nameable) state).customName();
+				return ((Nameable) state).getCustomName();
 		} else if (o instanceof ItemType) {
 			ItemMeta m = ((ItemType) o).getItemMeta();
-			return m.hasDisplayName() ? m.displayName() : null;
+			return m.hasDisplayName() ? m.getDisplayName() : null;
 		} else if (o instanceof Inventory) {
-			if (!((Inventory) o).getViewers().isEmpty())
-				return ((Inventory) o).getViewers().get(0).getOpenInventory().title();
-			return null;
+			if (TITLE_METHOD != null) {
+				try {
+					return (String) TITLE_METHOD.invoke(o);
+				} catch (Throwable ex) {
+					Skript.exception(ex);
+					return null;
+				}
+			} else {
+				if (!((Inventory) o).getViewers().isEmpty())
+					return ((Inventory) o).getViewers().get(0).getOpenInventory().getTitle();
+				return null;
+			}
 		} else if (o instanceof Slot) {
 			ItemStack is = ((Slot) o).getItem();
 			if (is != null && is.hasItemMeta()) {
 				ItemMeta m = is.getItemMeta();
-				return m.hasDisplayName() ? m.displayName() : null;
+				return m.hasDisplayName() ? m.getDisplayName() : null;
 			}
 		} else if (o instanceof World) {
-			return Component.text(((World) o).getName());
+			return ((World) o).getName();
 		} else if (HAS_GAMERULES && o instanceof GameRule) {
-			return Component.text(((GameRule) o).getName());
+			return ((GameRule) o).getName();
 		}
 		return null;
 	}
@@ -216,22 +221,19 @@ public class ExprName extends SimplePropertyExpression<Object, Component> {
 
 	@Override
 	public void change(Event e, @Nullable Object[] delta, ChangeMode mode) {
-		Component name = null;
-		if (delta[0] instanceof Component c) name = (Component)delta[0];
-		else if (delta[0] instanceof String s) name = parseComponent(s);
-
+		String name = delta != null ? (String) delta[0] : null;
 		for (Object o : getExpr().getArray(e)) {
 			if (o instanceof Player) {
 				switch (mark) {
 					case 2:
-						((Player) o).displayName(name != null ? name : ((Player) o).name());
+						((Player) o).setDisplayName(name != null ? name + ChatColor.RESET : ((Player) o).getName());
 						break;
 					case 3: // Null check not necessary. This method will use the player's name if 'name' is null.
-						((Player) o).playerListName(name);
+						((Player) o).setPlayerListName(name);
 						break;
 				}
 			} else if (o instanceof Entity) {
-				((Entity) o).customName(name);
+				((Entity) o).setCustomName(name);
 				if (mark == 2 || mode == ChangeMode.RESET) // Using "display name"
 					((Entity) o).setCustomNameVisible(name != null);
 				if (o instanceof LivingEntity)
@@ -239,13 +241,13 @@ public class ExprName extends SimplePropertyExpression<Object, Component> {
 			} else if (o instanceof Block) {
 				BlockState state = ((Block) o).getState();
 				if (state instanceof Nameable) {
-					((Nameable) state).customName(name);
+					((Nameable) state).setCustomName(name);
 					state.update();
 				}
 			} else if (o instanceof ItemType) {
 				ItemType i = (ItemType) o;
 				ItemMeta m = i.getItemMeta();
-				m.displayName(name);
+				m.setDisplayName(name);
 				i.setItemMeta(m);
 			} else if (o instanceof Inventory) {
 				Inventory inv = (Inventory) o;
@@ -259,7 +261,7 @@ public class ExprName extends SimplePropertyExpression<Object, Component> {
 				if (!type.isCreatable())
 					return;
 				if (name == null)
-					name = type.defaultTitle();
+					name = type.getDefaultTitle();
 
 				Inventory copy;
 				if (type == InventoryType.CHEST) {
@@ -274,7 +276,7 @@ public class ExprName extends SimplePropertyExpression<Object, Component> {
 				ItemStack is = s.getItem();
 				if (is != null && !AIR.isOfType(is)) {
 					ItemMeta m = is.hasItemMeta() ? is.getItemMeta() : Bukkit.getItemFactory().getItemMeta(is.getType());
-					m.displayName(name);
+					m.setDisplayName(name);
 					is.setItemMeta(m);
 					s.setItem(is);
 				}
@@ -283,8 +285,8 @@ public class ExprName extends SimplePropertyExpression<Object, Component> {
 	}
 
 	@Override
-	public Class<Component> getReturnType() {
-		return Component.class;
+	public Class<String> getReturnType() {
+		return String.class;
 	}
 
 	@Override

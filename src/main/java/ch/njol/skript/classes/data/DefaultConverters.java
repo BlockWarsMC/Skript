@@ -28,11 +28,7 @@ import ch.njol.skript.util.BlockUtils;
 import ch.njol.skript.util.Direction;
 import ch.njol.skript.util.EnchantmentType;
 import ch.njol.skript.util.Experience;
-import ch.njol.skript.util.chat.ChatMessages;
 import ch.njol.skript.util.slot.Slot;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -69,9 +65,6 @@ public class DefaultConverters {
 		Converters.registerConverter(Number.class, Integer.class, Number::intValue);
 		Converters.registerConverter(Number.class, Long.class, Number::longValue);
 		Converters.registerConverter(Number.class, Short.class, Number::shortValue);
-
-		Converters.registerConverter(Component.class, String.class, c -> MiniMessage.miniMessage().serialize(c));
-		Converters.registerConverter(String.class, Component.class, ChatMessages::parseComponent);
 
 		// OfflinePlayer - PlayerInventory
 		Converters.registerConverter(OfflinePlayer.class, PlayerInventory.class, p -> {

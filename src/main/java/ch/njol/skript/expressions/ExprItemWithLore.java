@@ -22,8 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.eclipse.jdt.annotation.Nullable;
@@ -50,30 +48,30 @@ public class ExprItemWithLore extends PropertyExpression<ItemType, ItemType> {
 
 	static {
 		Skript.registerExpression(ExprItemWithLore.class, ItemType.class, ExpressionType.PROPERTY,
-				"%itemtype% with [(a|the)] lore %components%");
+				"%itemtype% with [(a|the)] lore %strings%");
 	}
 
 	@SuppressWarnings("null")
-	private Expression<Component> lore;
+	private Expression<String> lore;
 
 	@SuppressWarnings({"unchecked", "null"})
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean kleenean, ParseResult parseResult) {
 		setExpr((Expression<ItemType>) exprs[0]);
-		lore = (Expression<Component>) exprs[1];
+		lore = (Expression<String>) exprs[1];
 		return true;
 	}
 
 	@Override
 	protected ItemType[] get(Event e, ItemType[] source) {
-		List<Component> lore = this.lore.stream(e)
-			.map(o -> o.decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE))
+		List<String> lore = this.lore.stream(e)
+			.flatMap(l -> Arrays.stream(l.split("\n")))
 			.collect(Collectors.toList());
 
 		return get(source, item -> {
 			item = item.clone();
 			ItemMeta meta = item.getItemMeta();
-			meta.lore(lore);
+			meta.setLore(lore);
 			item.setItemMeta(meta);
 			return item;
 		});

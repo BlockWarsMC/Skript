@@ -72,18 +72,18 @@ public class EffSendTitle extends Effect {
 	static {
 		if (TIME_SUPPORTED)
 			Skript.registerEffect(EffSendTitle.class,
-					"send title %component% [with subtitle %-component%] [to %players%] [for %-timespan%] [with fade[(-| )]in %-timespan%] [(and|with) fade[(-| )]out %-timespan%]",
-					"send subtitle %component% [to %players%] [for %-timespan%] [with fade[(-| )]in %-timespan%] [(and|with) fade[(-| )]out %-timespan%]");
+					"send title %string% [with subtitle %-string%] [to %players%] [for %-timespan%] [with fade[(-| )]in %-timespan%] [(and|with) fade[(-| )]out %-timespan%]",
+					"send subtitle %string% [to %players%] [for %-timespan%] [with fade[(-| )]in %-timespan%] [(and|with) fade[(-| )]out %-timespan%]");
 		else
 			Skript.registerEffect(EffSendTitle.class,
-					"send title %component% [with subtitle %-component%] [to %players%]",
-					"send subtitle %component% [to %players%]");
+					"send title %string% [with subtitle %-string%] [to %players%]",
+					"send subtitle %string% [to %players%]");
 	}
 	
 	@Nullable
-	private Expression<Component> title;
+	private Expression<String> title;
 	@Nullable
-	private Expression<Component> subtitle;
+	private Expression<String> subtitle;
 	@SuppressWarnings("null")
 	private Expression<Player> recipients;
 	@Nullable
@@ -92,8 +92,8 @@ public class EffSendTitle extends Effect {
 	@SuppressWarnings({"unchecked", "null"})
 	@Override
 	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final ParseResult parser) {
-		title = matchedPattern == 0 ? (Expression<Component>) exprs[0] : null;
-		subtitle = (Expression<Component>) exprs[1 - matchedPattern];
+		title = matchedPattern == 0 ? (Expression<String>) exprs[0] : null;
+		subtitle = (Expression<String>) exprs[1 - matchedPattern];
 		recipients = (Expression<Player>) exprs[2 - matchedPattern];
 		if (TIME_SUPPORTED) {
 			stay = (Expression<Timespan>) exprs[3 - matchedPattern];
@@ -106,8 +106,14 @@ public class EffSendTitle extends Effect {
 	@SuppressWarnings("null")
 	@Override
 	protected void execute(final Event e) {
-		Component title = this.title != null ? this.title.getSingle(e) : null;
-		Component subtitle = this.subtitle != null ? this.subtitle.getSingle(e) : null;
+		String titleText = this.title != null ? this.title.getSingle(e) : null;
+
+		Component title = this.title != null ?
+			BungeeComponentSerializer.get().deserialize(BungeeConverter.convert(ChatMessages.parse(titleText))) : null;
+
+		String subtitleText = this.subtitle != null ? this.subtitle.getSingle(e) : null;
+		Component subtitle = this.subtitle != null ?
+			BungeeComponentSerializer.get().deserialize(BungeeConverter.convert(ChatMessages.parse(subtitleText))) : null;
 
 		if (TIME_SUPPORTED) {
 			long fadeIn, stay, fadeOut;
