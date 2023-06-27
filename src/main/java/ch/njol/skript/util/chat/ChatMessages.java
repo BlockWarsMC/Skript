@@ -536,7 +536,7 @@ public class ChatMessages {
 		String s = matcher.replaceAll(result -> {
 			String code = result.group(1);
 			if (code.equals("r")) {
-				return resetString;
+				return "<reset>" + resetString;
 			}
 			String tag = "<" + colorCodeTranslators.get(code) + ">";
 			if (!notReset.contains(code)) tag = resetString + tag;

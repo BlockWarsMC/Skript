@@ -53,6 +53,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
@@ -1545,6 +1546,11 @@ public final class Skript extends JavaPlugin implements Listener {
 			ex.printStackTrace(); // just like Bukkit
 			return false;
 		}
+	}
+
+	// ============= TAG RESOLVERS =============
+	public static void registerTagResolver(TagResolver resolver) {
+		ChatMessages.addTagResolver(resolver);
 	}
 	
 	// ================ LOGGING ================
