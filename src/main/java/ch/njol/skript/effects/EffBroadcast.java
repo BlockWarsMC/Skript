@@ -99,9 +99,13 @@ public class EffBroadcast extends Effect {
 				}
 			} else {
 				for (Object messageObject : message.getArray(e)) {
-					String realMessage = messageObject instanceof String ? (String) messageObject : Classes.toString(messageObject);
-					Component component = ChatMessages.parseComponent(realMessage);
-					receivers.forEach(receiver -> receiver.sendMessage(component));
+					if (messageObject instanceof Component component) {
+						receivers.forEach(receiver -> receiver.sendMessage(component));
+					} else {
+						String realMessage = messageObject instanceof String ? (String) messageObject : Classes.toString(messageObject);
+						Component component = ChatMessages.parseComponent(realMessage);
+						receivers.forEach(receiver -> receiver.sendMessage(component));
+					}
 				}
 			}
 		}
