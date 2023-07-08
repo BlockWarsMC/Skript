@@ -18,6 +18,8 @@
  */
 package ch.njol.skript.expressions;
 
+import ch.njol.skript.util.chat.ChatMessages;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
@@ -86,11 +88,12 @@ public class ExprPlayerlistHeaderFooter extends SimplePropertyExpression<Player,
 	@Override
 	public void change(Event e, @Nullable Object[] delta, Changer.ChangeMode mode) {
 		final String text = delta == null ? "" : (String) delta[0];
+		Component component = ChatMessages.parseComponent(text);
 		for (Player player : getExpr().getArray(e)) {
 			if (mark == HEADER) {
-				player.setPlayerListHeader(text);
+				player.sendPlayerListHeader(component);
 			} else if (mark == FOOTER) {
-				player.setPlayerListFooter(text);
+				player.sendPlayerListFooter(component);
 			}
 		}
 	}
