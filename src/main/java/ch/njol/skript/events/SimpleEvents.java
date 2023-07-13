@@ -354,13 +354,14 @@ public class SimpleEvents {
 						"\tif event-entity is a spider:",
 						"\t\tkill event-entity")
 				.since("1.0");
-//		Even worse than move event
-//		Skript.registerEvent("Vehicle Update", SimpleEvent.class, VehicleUpdateEvent.class, "vehicle update", "updat(e|ing|) [of] [a] vehicle")
-//				.description("Called when a vehicle updates.")
-//				.examples("on vehicle update:",
-//						"\tif event-entity is a boat:",
-//						"\t\tkill vehicle")
-//				.since("INSERT VERSION");
+		Skript.registerEvent("Entity Place", SimpleEvent.class, EntityPlaceEvent.class, "entity place")
+			.description("Called when a player places an entity on an item or block. Only fired for amror stands, boats, minecarts and end crystals")
+			.examples("on entity place:",
+				"\tif event-entity is a boat:",
+				"\t\tcancel event",
+				"\t\tsend \"no boats >:(\""
+				)
+			.since("13/07/2023");
 		if (Skript.classExists("org.spigotmc.event.entity.EntityMountEvent")) {
 			Skript.registerEvent("Entity Mount", SimpleEvent.class, EntityMountEvent.class, "mount[ing]")
 					.description("Called when entity starts riding another.")

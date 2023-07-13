@@ -963,6 +963,22 @@ public final class BukkitEventValues {
 			}
 		}, 0);
 
+		// EntityPlaceEvent
+		EventValues.registerEventValue(EntityPlaceEvent.class, Player.class, new Getter<Player, EntityPlaceEvent>() {
+			@Override
+			@Nullable
+			public Player get(final EntityPlaceEvent e) {
+				return e.getPlayer();
+			}
+		}, 0);
+		EventValues.registerEventValue(EntityPlaceEvent.class, Block.class, new Getter<Block, EntityPlaceEvent>() {
+			@Override
+			@Nullable
+			public Block get(final EntityPlaceEvent e) {
+				return e.getBlock();
+			}
+		}, 0);
+
 		// === ServerEvents ===
 		// Script load/unload event
 		EventValues.registerEventValue(ScriptEvent.class, CommandSender.class, new Getter<CommandSender, ScriptEvent>() {
