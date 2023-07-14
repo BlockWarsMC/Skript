@@ -30,6 +30,7 @@ import ch.njol.skript.lang.util.SimpleLiteral;
 import ch.njol.skript.expressions.ExprHiddenPlayers;
 import ch.njol.util.Kleenean;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -54,22 +55,34 @@ public class EffPlayerVisibility extends Effect {
 	static {
 		Skript.registerEffect(EffPlayerVisibility.class,
 				"hide %players% [(from|for) %-players%]",
-				"reveal %players% [(to|for|from) %-players%]");
+				"reveal %players% [(to|for|from) %-players%]",
+				"hide entity %entities% [(to|for|from) %-players%]",
+				"reveal entity %entities% [(to|for|from) %-players%]"
+			);
 	}
 
 	@SuppressWarnings("null")
 	private Expression<Player> players;
-	
+	@SuppressWarnings("null")
+	private Expression<Entity> entities;
+
 	@Nullable
 	private Expression<Player> targetPlayers;
 	
 	private boolean reveal;
+	private boolean entityHide = false;
 
 	@SuppressWarnings({"unchecked", "null"})
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
-		reveal = matchedPattern == 1;
-		players = (Expression<Player>) exprs[0];
+		reveal = matchedPattern % 2 != 0;
+		if (matchedPattern <= 1) {
+			players = (Expression<Player>) exprs[0];
+		} else {
+			entityHide = true;
+			entities = (Expression<Entity>) exprs[0];
+		}
+
 		if (reveal && players instanceof ExprHiddenPlayers)
 			targetPlayers = exprs.length > 1 ? (Expression<Player>) exprs[1] : ((ExprHiddenPlayers) players).getPlayers();
 		else
@@ -81,21 +94,27 @@ public class EffPlayerVisibility extends Effect {
     @SuppressWarnings("null")
     protected void execute(Event e) {
         Player[] targets = targetPlayers == null ? Bukkit.getOnlinePlayers().toArray(new Player[0]) : targetPlayers.getArray(e);
-        for (Player targetPlayer : targets) {
-            for (Player player : players.getArray(e)) {
-                if (reveal) {
-                    if (USE_DEPRECATED_METHOD)
-                        targetPlayer.showPlayer(player);
-                    else
-                        targetPlayer.showPlayer(Skript.getInstance(), player);
-                } else {
-                    if (USE_DEPRECATED_METHOD)
-                        targetPlayer.hidePlayer(player);
-                    else
-                        targetPlayer.hidePlayer(Skript.getInstance(), player);
-                }
-            }
-        }
+		if (!entityHide) {
+			for (Player targetPlayer : targets) {
+				for (Player player : players.getArray(e)) {
+					if (reveal) {
+						targetPlayer.showPlayer(Skript.getInstance(), player);
+					} else {
+						targetPlayer.hidePlayer(Skript.getInstance(), player);
+					}
+				}
+			}
+		} else {
+			for (Player targetPlayer : targets) {
+				for (Entity entity : entities.getArray(e)) {
+					if (reveal) {
+						targetPlayer.showEntity(Skript.getInstance(), entity);
+					} else {
+						targetPlayer.hideEntity(Skript.getInstance(), entity);
+					}
+				}
+			}
+		}
     }
 
 	@Override
