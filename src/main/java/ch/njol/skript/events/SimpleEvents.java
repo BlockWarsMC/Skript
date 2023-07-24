@@ -64,6 +64,7 @@ import io.papermc.paper.event.player.PlayerTradeEvent;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptEventHandler;
 import ch.njol.skript.lang.util.SimpleEvent;
+import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 /**
  * @author Peter Güttinger
@@ -362,6 +363,11 @@ public class SimpleEvents {
 				"\t\tsend \"no boats >:(\""
 				)
 			.since("13/07/2023");
+		Skript.registerEvent("Spawn Location", SimpleEvent.class, PlayerSpawnLocationEvent.class, "[player] spawn location")
+			.description("Called when player is about to spawn in a world after joining the server.")
+			.examples("on player spawn location:",
+				"\tset spawn location to {hub}")
+			.since("24/07/2023");
 		if (Skript.classExists("org.spigotmc.event.entity.EntityMountEvent")) {
 			Skript.registerEvent("Entity Mount", SimpleEvent.class, EntityMountEvent.class, "mount[ing]")
 					.description("Called when entity starts riding another.")
