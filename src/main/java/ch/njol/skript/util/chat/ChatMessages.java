@@ -89,6 +89,9 @@ public class ChatMessages {
 	public static void addTagResolver(TagResolver resolver) {
 		tagResolvers.add(resolver);
 	}
+	public static void removeTagResolver(String name) {
+		tagResolvers.removeIf(t -> t.has(name));
+	}
 	
 	/**
 	 * Registers language change listener for chat system.
