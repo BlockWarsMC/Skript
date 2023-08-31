@@ -92,7 +92,7 @@ public class ChatMessages {
 	public static void removeTagResolver(String name) {
 		tagResolvers.removeIf(t -> t.has(name));
 	}
-	
+
 	/**
 	 * Registers language change listener for chat system.
 	 * Called once by Skript, please don't call this addon developers.
@@ -557,7 +557,7 @@ public class ChatMessages {
 	public static String plain(Component s) {
 		return PlainTextComponentSerializer.plainText().serialize(s);
 	}
-	
+
 	public static String toJson(String msg) {
 		ComponentList componentList = new ComponentList(parse(msg));
 		String json = gson.toJson(componentList);
@@ -605,6 +605,8 @@ public class ChatMessages {
 			to.insertion = from.insertion;
 		if (to.hoverEvent == null)
 			to.hoverEvent = from.hoverEvent;
+		if (to.font == null)
+			to.font = from.font;
 	}
 
 	public static void shareStyles(MessageComponent[] components) {
