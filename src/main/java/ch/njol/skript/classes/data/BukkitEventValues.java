@@ -110,6 +110,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.potion.PotionEffectType;
 import org.eclipse.jdt.annotation.Nullable;
+import org.bukkit.event.player.PlayerQuitEvent.QuitReason;
 
 /**
  * @author Peter Güttinger

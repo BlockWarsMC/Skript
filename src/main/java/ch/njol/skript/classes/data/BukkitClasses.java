@@ -29,6 +29,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import ch.njol.skript.util.chat.ChatMessages;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Difficulty;
@@ -1573,6 +1578,7 @@ public class BukkitClasses {
 					.description("The inventory close reason in an <a href='/events.html#inventory_close'>inventory close event</a>.")
 					.requiredPlugins("Paper")
 					.since("INSERT VERSION"));
+	}
 	}
 
 }

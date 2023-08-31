@@ -154,13 +154,15 @@ public abstract class SkriptEvent extends Structure {
 	 */
 	@Override
 	public boolean postLoad() {
+		Class<? extends Event>[] eventClasses = getEventClasses();
 		// Is disabled
 		if (trigger.getScript() != null && disabledEventFiles.contains(trigger.getScript().getConfig().getFile())) {
-			disabledTriggers.add(new NonNullPair<>(getEventClasses(), trigger));
+			for (Class<? extends Event> event : eventClasses)
+				disabledTriggers.put(event, trigger);
 			return true;
 		}
 
-		SkriptEventHandler.registerBukkitEvents(trigger, getEventClasses());
+		SkriptEventHandler.registerBukkitEvents(trigger, eventClasses);
 		return true;
 	}
 
@@ -170,7 +172,7 @@ public abstract class SkriptEvent extends Structure {
 	 */
 	@Override
 	public void unload() {
-		disabledTriggers.removeIf(pair -> pair.getSecond() == trigger);
+		//disabledTriggers.removeIf(pair -> pair.getSecond() == trigger);
 		SkriptEventHandler.unregisterBukkitEvents(trigger);
 	}
 

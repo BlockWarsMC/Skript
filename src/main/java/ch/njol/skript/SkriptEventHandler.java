@@ -39,13 +39,9 @@ import org.eclipse.jdt.annotation.Nullable;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.Stream;
 
@@ -376,7 +372,7 @@ public final class SkriptEventHandler {
 
 	// DYNAMIC EVENT ENABLING / DISABLING
 	public static final Set<File> disabledEventFiles = new HashSet<>();
-	public static final Set<NonNullPair< Class<? extends Event>[], Trigger>> disabledTriggers = new HashSet<>();
+	public static final Multimap<Class<? extends Event>, Trigger> disabledTriggers = ArrayListMultimap.create();
 
 	public static boolean isEventsDisabled(File script) {
 		return disabledEventFiles.contains(script);
@@ -384,14 +380,12 @@ public final class SkriptEventHandler {
 
 	public static void enableEvents(File script) {
 		disabledEventFiles.remove(script);
-		disabledTriggers.removeIf(pair -> {
-			Trigger trigger = pair.getSecond();
-
-			if (trigger.getScript() == null) return false;
+		disabledTriggers.forEach((evt, trigger) -> {
+			if (trigger.getScript() == null) return;
 			@Nullable File file = trigger.getScript().getConfig().getFile();
-			if (file == null || !file.equals(script)) return false;
-			registerBukkitEvents(pair.getSecond(), pair.getFirst());
-			return true;
+			if (file == null || !file.equals(script)) return;
+			registerBukkitEvent(trigger, evt);
+			// TODO: Remove
 		});
 	}
 
@@ -399,17 +393,15 @@ public final class SkriptEventHandler {
 		disabledEventFiles.add(script);
 
 		Set<Trigger> disabled = new HashSet<>();
-		new ArrayList<>(triggers).forEach(pair -> {
-			Trigger trigger = pair.getSecond();
+		new ArrayList<>(triggers.entries()).forEach(pair -> {
+			Trigger trigger = pair.getValue();
 			if (disabled.contains(trigger)) return;
 
 			if (trigger.getScript() == null) return;
 			@Nullable File file = trigger.getScript().getConfig().getFile();
 			if (file == null || !file.equals(script)) return;
 			unregisterBukkitEvents(trigger);
-
-			disabledTriggers.add(new NonNullPair<>(trigger.getEvent().getEventClasses(), trigger));
-
+			disabledTriggers.put(pair.getKey(), trigger);
 			disabled.add(trigger);
 		});
 	}
