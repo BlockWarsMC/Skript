@@ -1074,13 +1074,6 @@ public final class BukkitEventValues {
 			}
 		}, 0);
 		// InventoryDragEvent
-		EventValues.registerEventValue(InventoryDragEvent.class, Player.class, new Getter<Player, InventoryDragEvent>() {
-			@Override
-			@Nullable
-			public Player get(InventoryDragEvent event) {
-				return event.getWhoClicked() instanceof Player ? (Player) event.getWhoClicked() : null;
-			}
-		}, EventValues.TIME_NOW);
 		EventValues.registerEventValue(InventoryDragEvent.class, World.class, new Getter<World, InventoryDragEvent>() {
 			@Override
 			@Nullable
@@ -1088,13 +1081,6 @@ public final class BukkitEventValues {
 				return event.getWhoClicked().getWorld();
 			}
 		}, EventValues.TIME_NOW);
-		EventValues.registerEventValue(InventoryDragEvent.class, ItemStack.class, new Getter<ItemStack, InventoryDragEvent>() {
-			@Override
-			@Nullable
-			public ItemStack get(InventoryDragEvent event) {
-				return event.getOldCursor();
-			}
-		}, EventValues.TIME_PAST);
 		EventValues.registerEventValue(InventoryDragEvent.class, ItemStack.class, new Getter<ItemStack, InventoryDragEvent>() {
 			@Override
 			@Nullable
@@ -1700,12 +1686,6 @@ public final class BukkitEventValues {
 			}
 		}, 0);
 
-		EventValues.registerEventValue(PlayerStatisticIncrementEvent.class, String.class, new Getter<String, PlayerStatisticIncrementEvent>() {
-			@Override
-			public String get(PlayerStatisticIncrementEvent e) {
-				return e.getStatistic().name().toLowerCase();
-			}
-		}, 0);
 
 		// InventoryItemMoveEvent - does not extend InventoryEvent
 		EventValues.registerEventValue(InventoryMoveItemEvent.class, Inventory.class, new Getter<Inventory, InventoryMoveItemEvent>() {
