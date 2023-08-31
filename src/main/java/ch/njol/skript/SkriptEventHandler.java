@@ -41,9 +41,8 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.Stream;
 
 public final class SkriptEventHandler {
 
@@ -380,13 +379,22 @@ public final class SkriptEventHandler {
 
 	public static void enableEvents(File script) {
 		disabledEventFiles.remove(script);
-		disabledTriggers.forEach((evt, trigger) -> {
-			if (trigger.getScript() == null) return;
-			@Nullable File file = trigger.getScript().getConfig().getFile();
+		removeDisabledTriggers(script, (entry -> registerBukkitEvent(entry.getValue(), entry.getKey())));
+	}
+
+	public static void removeDisabledTriggers(File script, @Nullable Consumer<Entry<Class<? extends Event>, Trigger>> withTriggers) {
+		Iterator<Entry<Class<? extends Event>, Trigger>> entryIterator = disabledTriggers.entries().iterator();
+		while (entryIterator.hasNext()) {
+			Entry<Class<? extends Event>, Trigger> entry = entryIterator.next();
+			Trigger trigger = entry.getValue();
+
+			if (trigger.getScript() == null) continue;
+			File file = trigger.getScript().getConfig().getFile();
 			if (file == null || !file.equals(script)) return;
-			registerBukkitEvent(trigger, evt);
-			// TODO: Remove
-		});
+
+			if (withTriggers != null) withTriggers.accept(entry);
+			entryIterator.remove();
+		}
 	}
 
 	public static void disableEvents(File script) {

@@ -172,7 +172,9 @@ public abstract class SkriptEvent extends Structure {
 	 */
 	@Override
 	public void unload() {
-		//disabledTriggers.removeIf(pair -> pair.getSecond() == trigger);
+		if (trigger.getScript() != null && trigger.getScript().getConfig().getFile() != null) {
+			SkriptEventHandler.removeDisabledTriggers(trigger.getScript().getConfig().getFile(), null);
+		}
 		SkriptEventHandler.unregisterBukkitEvents(trigger);
 	}
 
