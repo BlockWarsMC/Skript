@@ -1555,7 +1555,7 @@ public class BukkitClasses {
 			})
 		);
 
-		if (Skript.classExists("io.papermc.paper.world.MoonPhase")) {
+		if (Skript.classExists("io.papermc.paper.world.MoonPhase"))
 			Classes.registerClass(new EnumClassInfo<>(MoonPhase.class, "moonphase", "moon phases")
 					.user("(lunar|moon) ?phases?")
 					.name("Moon Phase")
@@ -1578,7 +1578,6 @@ public class BukkitClasses {
 					.description("The inventory close reason in an <a href='/events.html#inventory_close'>inventory close event</a>.")
 					.requiredPlugins("Paper")
 					.since("INSERT VERSION"));
-	}
 	}
 
 }
