@@ -390,7 +390,7 @@ public final class SkriptEventHandler {
 
 			if (trigger.getScript() == null) continue;
 			File file = trigger.getScript().getConfig().getFile();
-			if (file == null || !file.equals(script)) return;
+			if (file == null || !file.equals(script)) continue;
 
 			if (withTriggers != null) withTriggers.accept(entry);
 			entryIterator.remove();
