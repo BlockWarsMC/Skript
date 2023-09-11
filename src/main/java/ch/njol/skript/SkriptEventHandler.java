@@ -400,17 +400,14 @@ public final class SkriptEventHandler {
 	public static void disableEvents(File script) {
 		disabledEventFiles.add(script);
 
-		Set<Trigger> disabled = new HashSet<>();
 		new ArrayList<>(triggers.entries()).forEach(pair -> {
 			Trigger trigger = pair.getValue();
-			if (disabled.contains(trigger)) return;
 
 			if (trigger.getScript() == null) return;
 			@Nullable File file = trigger.getScript().getConfig().getFile();
 			if (file == null || !file.equals(script)) return;
 			unregisterBukkitEvents(trigger);
 			disabledTriggers.put(pair.getKey(), trigger);
-			disabled.add(trigger);
 		});
 	}
 

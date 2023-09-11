@@ -585,10 +585,6 @@ public class SimpleEvents {
 			.description("Called when an entity interacts with the surroundings")
 			.requiredPlugins("Minecraft 1.13 or newer")
 			.since("3.0.0");
-		Skript.registerEvent("Inventory Drag", SimpleEvent.class, InventoryDragEvent.class, "inventory drag")
-			.description("Called when the player drags an item in their cursor across the inventory")
-			.requiredPlugins("Minecraft 1.13 or newer")
-			.since("3.0.0");
 		Skript.registerEvent("Statistic Change", SimpleEvent.class, PlayerStatisticIncrementEvent.class, "[player] stat[istic][s] (change|increase)")
 			.description("Called when a player's stats changes")
 			.examples("on stat change:",
